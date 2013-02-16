@@ -62,29 +62,42 @@ namespace DerpScrapper
             {
                 string query = (string)a;
 
-                TVDBScraper tvDb = new TVDBScraper();
-                SerieInfo serieInfo = tvDb.FindAllInformationForSerie(query);
-
-                int serieId = serieInfo.serie.Insert();
-                serieInfo.metadata.SerieId = serieId;
-                serieInfo.resource.SerieId = serieId;
-
-                serieInfo.metadata.Insert();
-                serieInfo.resource.Insert();
-
-                foreach (SerieGenre gen in serieInfo.genres)
+                Serie serie = Serie.GetByName(query);
+                List<Episode> episodes = null;
+                if (serie == null)
                 {
-                    gen.SerieId = serieId;
-                    gen.Insert();
+                    TVDBScraper tvDb = new TVDBScraper();
+                    SerieInfo serieInfo = tvDb.FindAllInformationForSerie(query);
+
+                    int serieId = serieInfo.serie.Insert();
+                    serieInfo.metadata.SerieId = serieId;
+                    serieInfo.resource.SerieId = serieId;
+
+                    serieInfo.metadata.Insert();
+                    serieInfo.resource.Insert();
+
+                    foreach (SerieGenre gen in serieInfo.genres)
+                    {
+                        gen.SerieId = serieId;
+                        gen.Insert();
+                    }
+
+                    foreach (Episode ep in serieInfo.episodes)
+                    {
+                        ep.SerieId = serieId;
+                        ep.Insert();
+                    }
+
+                    serie = serieInfo.serie;
+                    episodes = serieInfo.episodes;
+                }
+                else
+                {
+                    episodes = serie.GetEpisodes();
                 }
 
-                foreach (Episode ep in serieInfo.episodes)
-                {
-                    ep.SerieId = serieId;
-                    ep.Insert();
-                }
-
-                var x = new Nyaa();
+                var nyaaScraper = new Nyaa();
+                var downloads = nyaaScraper.GetDownloadsForEntireSerie(serie, episodes);
                 return new DerpThing() { Name = query, List = null, idx = 1 };
             };
 

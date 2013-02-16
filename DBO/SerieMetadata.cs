@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Collections.Generic;
 
 namespace DerpScrapper.DBO
 {
@@ -9,7 +6,10 @@ namespace DerpScrapper.DBO
     {
         public static Dictionary<string, System.Data.DbType> _columns = null;
 
-        public static string tableName = "SerieMetadata";
+        public new static string tableName
+        {
+            get { return "SerieMetadata"; }
+        }
 
 
         public SerieMetadata(int rowId = -1)

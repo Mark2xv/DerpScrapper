@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Net;
-using DerpScrapper.DBO;
 using System.Text.RegularExpressions;
-using HtmlAgilityPack;
-using DerpScrapper.Scraper;
 using System.Xml;
+using DerpScrapper.DBO;
+using DerpScrapper.Scraper;
+using HtmlAgilityPack;
 
 namespace DerpScrapper.DownloadSite_Scrapers
 {
@@ -144,28 +143,125 @@ namespace DerpScrapper.DownloadSite_Scrapers
             return list;
         }
 
+        private PossibleDownloadHit IsBDVolumeBatch(string cleanedName, PossibleDownloadHit baseHit, List<Episode> episodeInfo)
+        {
+            if (cleanedName.Matches(isBdBatch))
+            {
+                // Get the episodes from the detailpage
+                var eps = this.getEpisodeNumbersFromUrl(baseHit.origSerieName, baseHit.infoPageUrl, baseHit);
+                baseHit.episodes.AddRange(eps);
+                baseHit.preference += (int)Math.Ceiling((float)eps.Count / 3);
+
+                return baseHit;
+            }
+            return null;
+        }
+
+        private PossibleDownloadHit IsSpecial(string cleanedName, PossibleDownloadHit baseHit, List<Episode> episodeInfo)
+        {
+            int idxOfPeriod = cleanedName.LastIndexOf('.') + 1;
+            string noExtension;
+            if (idxOfPeriod != 0)
+            {
+                string ext = cleanedName.Substring(idxOfPeriod).Trim();
+                noExtension = cleanedName.Substring(0, Math.Max(0, idxOfPeriod - 1)).Trim();
+            }
+            else
+            {
+                noExtension = cleanedName;
+            }
+
+            string noSerieName = noExtension.Replace(baseHit.origSerieName.ToLower(), "");
+            if (noSerieName.Contains("ova") || noSerieName.Contains("special"))
+            {
+                // assume season 0 episode (special, extra, whatever)
+                string noS = onlyAlphaNumeric.Replace(noSerieName, "").Replace("  ", " ");
+                string x = special.Replace(noS, "").Trim();
+
+                Match m = endsWithDecimal.Match(x);
+                if (m.Success)
+                {
+                    string firstPart = x.Substring(0, m.Index).Trim();
+                    string matchHit = m.Value;
+
+                    int epVal;
+                    bool s = int.TryParse(matchHit, out epVal);
+                    if (s)
+                    {
+                        // Look through known ep info is there's any known serie with specifications as such
+                        string f = string.Format("{0} {1}", firstPart, epVal);
+                        var specialEpisodeMatch = FindEp(episodeInfo, f);
+                        if (specialEpisodeMatch != null)
+                        {
+                            // actually found it!
+                            Console.WriteLine("Matched {0} to special episode {1}", baseHit.name, specialEpisodeMatch.EpisodeName);
+                            baseHit.episodes.Add(new SeasonEpisode(-1, epVal));
+                        }
+                        else
+                        {
+                            // nope.
+                        }
+                    }
+                    else
+                    {
+                        // unparsable?
+                    }
+                }
+                else
+                {
+                    // Only parse for ep name.. 
+                }
+            }
+            return baseHit;
+        }
+
+        private PossibleDownloadHit IsRange(string cleanedName, PossibleDownloadHit baseHit, List<Episode> episodeInfo)
+        {
+            return null;
+        }
+
+        private PossibleDownloadHit AfterDash(string cleanedName, PossibleDownloadHit baseHit, List<Episode> episodeInfo)
+        {
+            return null;
+        }
+
+        private PossibleDownloadHit AfterSpace(string cleanedName, PossibleDownloadHit baseHit, List<Episode> episodeInfo)
+        {
+            return null;
+        }
+
+        private PossibleDownloadHit BruteForce(string cleanedName, PossibleDownloadHit baseHit, List<Episode> episodeInfo)
+        {
+            return null;
+        }
+
         private PossibleDownloadHit ParseItem(XmlNode itemNode, string serieName, List<Episode> epInfo)
         {
-            PossibleDownloadHit hit = new PossibleDownloadHit();
+            PossibleDownloadHit hit = null;
 
             string title = itemNode.ChildNodes[0].InnerText;
+            Console.WriteLine("Begin parsing of item " + title);
+
             string url = itemNode.ChildNodes[2].InnerText;
             string infoPage = itemNode.ChildNodes[3].InnerText;
             string desc = itemNode.ChildNodes[4].InnerText;
-
-            hit.name = title;
-            hit.infoPageUrl = infoPage;
 
             var parts = desc.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
             var parts2 = parts[2].Split(new[] { '-' }, StringSplitOptions.RemoveEmptyEntries);
 
             var sizeParts = parts2[1].Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-
             float fileSize = float.Parse(sizeParts[0]);
             if (sizeParts[1] == "GiB")
             {
                 fileSize *= 1000;
             }
+
+            PossibleDownloadHit baseHit = new PossibleDownloadHit();
+            baseHit.origSerieName = serieName;
+            baseHit.name = title;
+            baseHit.infoPageUrl = infoPage;
+            baseHit.url = url;
+            baseHit.fileSize = fileSize;
 
             if (parts2.Length >= 3) // TrustLevel > None
             {
@@ -186,8 +282,41 @@ namespace DerpScrapper.DownloadSite_Scrapers
                 }
             }
 
+
             // Fix name so there's no more underscores (It's fucking 2013. Come on now.), html entities and all useless stuff between brackets
             string cleanName = ScraperUtility.CleanUpName(WebUtility.HtmlDecode(title).Replace('_', ' '), removeCharCombos);
+
+            // Basically, try to parse the hit with all different methods. If one returns a usable result, it's good enough
+            var funcs = new Func<string, PossibleDownloadHit, List<Episode>, PossibleDownloadHit>[] { 
+                IsBDVolumeBatch,
+                IsSpecial,
+                IsRange,
+                AfterDash,
+                AfterSpace,
+                BruteForce
+            };
+
+            foreach (var func in funcs)
+            {
+                var pHit = func(cleanName, baseHit, epInfo);
+                if (pHit != null && pHit.preference > 0 && pHit.episodes.Count > 0)
+                {
+                    Console.WriteLine("Found result {0} with method: {1}", pHit.name, func.Method.Name);
+                    if (func == BruteForce)
+                        hit.preference -= 2;
+
+                    hit = pHit;
+                    break;
+                }
+                else
+                {
+                    Console.WriteLine("Did not find result with method {0}", func.Method.Name);
+                }
+            }
+
+            return hit;
+
+            string noExtension = cleanName;
 
             List<SeasonEpisode> epList = new List<SeasonEpisode>();
             // If the item contains 'Volume 1' or 'Vol 1' or something along those lines, assume its a BD batch -> we'll need to get the episodes from a seperate info page
@@ -205,57 +334,13 @@ namespace DerpScrapper.DownloadSite_Scrapers
 
                 int idxOfPeriod = cleanName.LastIndexOf('.') + 1;
                 string ext = cleanName.Substring(idxOfPeriod).Trim();
-                string noExt = cleanName.Substring(0, Math.Max(0, idxOfPeriod - 1)).Trim();
+                noExtension = cleanName.Substring(0, Math.Max(0, idxOfPeriod - 1)).Trim();
                 if (acceptedFileTypes.Contains(ext))
                 {
-                    string noSerieName = noExt.Replace(serieName.ToLower(), "");
-                    if (noSerieName.Contains("ova") || noSerieName.Contains("special"))
-                    {
-                        // assume season 0 episode (special, extra, whatever)
-                        string noS = onlyAlphaNumeric.Replace(noSerieName, "").Replace("  ", " ");
-                        string x = special.Replace(noS, "").Trim();
-
-                        Match m = endsWithDecimal.Match(x);
-                        if (m.Success)
-                        {
-                            string firstPart = x.Substring(0, m.Index).Trim();
-                            string matchHit = m.Value;
-
-                            int epVal;
-                            bool s = int.TryParse(matchHit, out epVal);
-                            if (s)
-                            {
-                                // Look through known ep info is there's any known serie with specifications as such
-                                string f = string.Format("{0} {1}", firstPart, epVal);
-                                var specialEpisodeMatch = FindEp(epInfo, f);
-                                if (specialEpisodeMatch != null)
-                                {
-                                    // actually found it!
-                                    Console.WriteLine("Matched {0} to special episode {1}", title, specialEpisodeMatch.EpisodeName);
-                                    epList.Add(new SeasonEpisode(-1, epVal));
-                                }
-                                else
-                                {
-                                    // nope.
-                                }
-                            }
-                            else
-                            {
-                                // unparsable?
-                            }
-                        }
-
-
-                        // Only parse for ep name.. 
-
-
-
-                    }
-
-
                 }
                 else
                 {
+
                     // Okay... no usable extension. つづく...
 
                     if (cleanName == serieName.ToLower() || ScraperUtility.Levenshtein(serieName.ToLower(), cleanName.ToLower()) <= 3)
@@ -298,7 +383,24 @@ namespace DerpScrapper.DownloadSite_Scrapers
                                 // I really don't know
                             }
                         }
+                        else
+                        {
+                            // No match using normal method
 
+                            int epNr;
+                            bool success = int.TryParse(afterSpace, out epNr);
+                            if (success)
+                            {
+                                Console.WriteLine("Found " + title + " fitting to be episode number " + epNr + "  | parse method = last space");
+                                epList.Add(new SeasonEpisode(1, epNr));
+                            }
+                            else
+                            {
+                                // Once again, fall back to last dash (instead of last space)
+
+                            }
+
+                        }
                     }
                 }
             }
@@ -316,6 +418,7 @@ namespace DerpScrapper.DownloadSite_Scrapers
 
             if (hit.preference >= 0)
                 return hit;
+            Console.WriteLine("Discarded hit: " + hit.name + ": Negative preference");
             return null;
         }
 
@@ -329,20 +432,19 @@ namespace DerpScrapper.DownloadSite_Scrapers
             var list = new List<PossibleDownloadHit>();
 
             string rssUrl = string.Format("http://www.nyaa.eu/?page=rss&cats=1_37&term={0}", name);
+            Console.WriteLine("Getting contents of url: " + rssUrl + " ...");
             string rss = ScraperUtility.GetContentOfUrl(rssUrl);
             System.Xml.XmlDocument doc = new System.Xml.XmlDocument();
+            Console.WriteLine("Parsing XML...");
             doc.LoadXml(rss);
             for (int i = 0; i < doc.DocumentElement.FirstChild.ChildNodes.Count; i++)
             {
-                // Skip first 5 items - they are descriptors of the RSS Feed
-                if (i < 5) continue;
                 XmlNode node = doc.DocumentElement.FirstChild.ChildNodes[i];
-                if (node.Name == "item")
-                {
-                    PossibleDownloadHit hit = this.ParseItem(node, name, knownEpisodes);
-                    if (hit != null)
-                        list.Add(hit);
-                }
+                // Skip first 5 items - they are descriptors of the RSS Feed
+                if (node.Name != "item") continue;
+                PossibleDownloadHit hit = this.ParseItem(node, name, knownEpisodes);
+                if (hit != null)
+                    list.Add(hit);
             }
 
             return list;

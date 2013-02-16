@@ -33,6 +33,8 @@ namespace DerpScrapper
 
     public class PossibleDownloadHit
     {
+        public string origSerieName;
+
         public int preference = 0;
         public string name;
         public string url;
