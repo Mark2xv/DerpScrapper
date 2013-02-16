@@ -73,6 +73,7 @@
     <Compile Include="DBO\SerieResource.cs" />
     <Compile Include="Downloader\UTorrent.cs" />
     <Compile Include="DownloadSite_Scrapers\BakaBT.cs" />
+    <Compile Include="DownloadSite_Scrapers\DownloadSettings.cs" />
     <Compile Include="DownloadSite_Scrapers\Nyaa.cs" />
     <Compile Include="DownloadSite_Scrapers\TokyoToshokan.cs" />
     <Compile Include="Empty.cs">

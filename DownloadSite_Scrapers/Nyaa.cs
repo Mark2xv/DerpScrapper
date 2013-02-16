@@ -46,12 +46,13 @@ namespace DerpScrapper.DownloadSite_Scrapers
 
         public List<PossibleDownloadHit> GetDownloadsForEntireSerie(Serie serie, List<Episode> knownEpisodes)
         {
-            var list = this.getListOfAllDownloadsForName(serie["Name"].ToString(), knownEpisodes);
+            Log.WriteLine("\n\n--------------------NEW RUN----------------------\n\n");
 
+            var list = this.getListOfAllDownloadsForName(serie["Name"].ToString(), knownEpisodes);
             var key = 1;
             foreach (var x in list)
             {
-                Log.WriteLine(key + " (p="+x.preference+") | " + x.name + " | cEp = " + x.episodes.Count);
+                Log.WriteLine(key + " (p="+x.preference+") | " + x.name + " = ({0}) | cEp = " + x.episodes.Count + "\n\tUrl = " + x.infoPageUrl + "\n\t" + x.episodes.Implode(",\n\t"), x.qualityInfo);
                 key++;
             }
 
@@ -113,6 +114,12 @@ namespace DerpScrapper.DownloadSite_Scrapers
                         int epNr;
                         // use alternate parsing
 
+                        Match m = versionCheck.Match(clTitle);
+                        if(m.Success)
+                        {
+                            clTitle = clTitle.Substring(0, m.Index);
+                        }
+
                         // Start off by trying to get everything after "-"
                         int lastIndexOfDash = clTitle.LastIndexOf('-');
                         string afterDash = clTitle.Substring(lastIndexOfDash + 1).Trim();
@@ -129,12 +136,6 @@ namespace DerpScrapper.DownloadSite_Scrapers
                             {
                                 list.Add(new SeasonEpisode(1, epNr, title));
                             }
-                            else
-                            {
-                                forHit.unSure = true;
-                                continue;
-                            }
-
                         }
                     }
                 }
@@ -172,7 +173,7 @@ namespace DerpScrapper.DownloadSite_Scrapers
                 var eps = this.getEpisodeNumbersFromUrl(baseHit.origSerieName, baseHit.infoPageUrl, baseHit);
                 baseHit.episodes.AddRange(eps);
                 baseHit.preference += (int)Math.Ceiling((float)eps.Count / 3);
-
+                baseHit.qualityInfo.source = QualityInformation.Source.BlueRay;
                 return baseHit;
             }
             return null;
@@ -286,6 +287,21 @@ namespace DerpScrapper.DownloadSite_Scrapers
                     baseHit.episodes.Add(new SeasonEpisode(1, epNr, baseHit.name));
                     return baseHit;
                 }
+                else
+                {
+                    // Check with vX test
+                    var match = versionCheck.Match(epNrPart);
+                    if (!match.Success)
+                        return null;
+
+                    epNrPart = epNrPart.Substring(0, match.Index);
+                    success = int.TryParse(epNrPart, out epNr);
+                    if (success && FindEp(episodeInfo, epNr) != null)
+                    {
+                        baseHit.episodes.Add(new SeasonEpisode(1, epNr, baseHit.name));
+                        return baseHit;
+                    }
+                }
                 return null;
             }
             return null;
@@ -392,47 +408,71 @@ namespace DerpScrapper.DownloadSite_Scrapers
             // Fix name so there's no more underscores (It's fucking 2013. Come on now.), html entities and all useless stuff between brackets
             string cleanName = ScraperUtility.CleanUpName(name, removeCharCombos);
 
+            QualityInformation qual = new QualityInformation();
+
             List<string> tags = ScraperUtility.TagContents(name, removeCharCombos);
             foreach (string tag in tags)
             {
                 switch (tag.ToLower())
                 {
+                    // Containers
                     case "mkv":
                         baseHit.preference++;
                         break;
-
                     case "mp4":
                         baseHit.preference--;
                         break;
 
+                    // Encoding Bit size
                     case "hi10":
                     case "hi10p":
                     case "10bit":
+                        qual.encoding = QualityInformation.Encoding.TenBit;
                         baseHit.preference++;
                         break;
 
+                    case "8bit":
+                        qual.encoding = QualityInformation.Encoding.EightBit;
+                        break;
+
+                    // Resolution
                     case "1080p":
                     case "1920x1080":
+                        qual.resolution = QualityInformation.Resolution.HD1080;
                         baseHit.preference += 2;
                         break;
 
                     case "720p":
                     case "1280x720":
+                        qual.resolution = QualityInformation.Resolution.HD720;
                         baseHit.preference++;
                         break;
 
+                    // Source
                     case "bd":
                     case "bluray":
                     case "bdrip":
                     case "blu-ray":
+                        qual.source = QualityInformation.Source.BlueRay;
                         baseHit.preference += 2;
                         break;
 
-                    case "8bit": // 8 bit is normal, so nothing special there
+                    case "dvd":
+                    case "dvdrip":
+                        qual.source = QualityInformation.Source.DVD;
+                        break;
+
+                    case "hdtv":
+                        qual.source = QualityInformation.Source.HDTV;
+                        break;
+
                     default:
+                        qual.encoding = QualityInformation.Encoding.EightBit;
                         break;
                 }
             }
+
+            baseHit.qualityInfo = qual;
 
             // Basically, try to parse the hit with all different methods. If any of these returns a usable result, it's good enough
             var funcs = new Func<string, PossibleDownloadHit, List<Episode>, PossibleDownloadHit>[] { 
@@ -445,12 +485,13 @@ namespace DerpScrapper.DownloadSite_Scrapers
                 BruteForce
             };
 
+            string hitFunc = "";
             foreach (var func in funcs)
             {
                 var pHit = func(cleanName, baseHit, epInfo);
                 if (pHit != null && pHit.episodes.Count > 0)
                 {
-                    Log.WriteLine("Found result \"{0}\", episodes:({2}) with method: {1}", pHit.name, func.Method.Name, pHit.episodes.Implode(", "));
+                    hitFunc = func.Method.Name;
                     switch (func.Method.Name)
                     {
                         case "IsBDVolumeBatch":
@@ -475,11 +516,12 @@ namespace DerpScrapper.DownloadSite_Scrapers
             {
                 // Nothing has been found. At all.
                 Log.WriteLine("Could not resolve title " + title + " to anything");
+                return null;
             }
-            else
-            {
-                SortByEpisodeNumber(hit);
-            }
+            hit.preference += hit.qualityInfo.PreferenceBonus;
+
+            Log.WriteLine("Found result \"{0}\", episodes:({2}) with method: {1} with qualInfo: {3}", hit.name, hitFunc, hit.episodes.Implode(", "), qual);
+            SortByEpisodeNumber(hit);
 
             return hit;
         }
@@ -514,19 +556,47 @@ namespace DerpScrapper.DownloadSite_Scrapers
                 XmlNode node = doc.DocumentElement.FirstChild.ChildNodes[i];
                 // Skip first 5 items - they are descriptors of the RSS Feed
                 if (node.Name != "item") continue;
+
                 PossibleDownloadHit hit = this.ParseItem(node, name, knownEpisodes);
+
+                if (hit == null)
+                    continue;
+
+                bool mustAbide = DownloadSettings.MustAbide;
+                QualityInformation prefferedQuality = DownloadSettings.PrefferedDownloadQuality;
+                if (mustAbide)
+                {
+                    if (!(hit.qualityInfo.source == prefferedQuality.source && hit.qualityInfo.resolution == prefferedQuality.resolution && hit.qualityInfo.encoding == prefferedQuality.encoding))
+                    {
+                        Console.WriteLine("Dropped download: {0} - did not abide to set rules for downloads. (rules = {1}, hitQ = {2})", hit.name, prefferedQuality, hit.qualityInfo);
+                        continue;
+                    }
+                }
+                else
+                {
+                    // Just prefer the ones who do abide to the preffered quality (as an extra above the default rules / pref system)
+                    if (hit.qualityInfo.encoding == prefferedQuality.encoding)
+                        hit.preference += 5;
+
+                    if (hit.qualityInfo.resolution == prefferedQuality.resolution)
+                        hit.preference += 5;
+
+                    if (hit.qualityInfo.source == prefferedQuality.source)
+                        hit.preference += 5;
+                }
+
                 if (hit != null)
                     list.Add(hit);
             }
 
-            list = Nyaa.OrderByEpCountThenPreference(list);
+            list = Nyaa.OrderPreferenceThenEpCount(list);
 
             return list;
         }
 
-        private static List<PossibleDownloadHit> OrderByEpCountThenPreference(List<PossibleDownloadHit> list)
+        private static List<PossibleDownloadHit> OrderPreferenceThenEpCount(List<PossibleDownloadHit> list)
         {
-            list = list.OrderByDescending(p => p.episodes.Count).ThenByDescending(p => p.preference).ToList();
+            list = list.OrderByDescending(p => p.preference).ThenByDescending(p => p.episodes.Count).ToList();
             return list;
         }
 
