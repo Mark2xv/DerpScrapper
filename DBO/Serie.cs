@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Collections.Generic;
 
 namespace DerpScrapper.DBO
 {
@@ -9,11 +6,25 @@ namespace DerpScrapper.DBO
     {
         public static Dictionary<string, System.Data.DbType> _columns = null;
 
-        public static string tableName = "Serie";
+        public new static string tableName
+        {
+            get { return "Serie"; }
+        }
 
         public Serie(int rowId = -1)
             : base("Serie", rowId)
         {
+        }
+
+        public static Serie GetByName(string name)
+        {
+            var com = BaseDB.connection.CreateCommand("SELECT ROWID FROM Serie WHERE Name LIKE '%" + name + "%' COLLATE NOCASE");
+            var reader = com.ExecuteReader();
+            if (reader.HasRows && reader.Read())
+            {
+                return new Serie(reader.GetInt32(0));
+            }
+            return null;
         }
 
         public override void CreateColumns()
@@ -32,6 +43,20 @@ namespace DerpScrapper.DBO
 
 
             this.columns = _columns;
+        }
+
+        public List<Episode> GetEpisodes()
+        {
+            List<Episode> eps = new List<Episode>();
+
+            var com = BaseDB.connection.CreateCommand("SELECT ROWID FROM Episode WHERE SerieId = " + this.Id.ToString());
+            var reader = com.ExecuteReader();
+            while (reader.HasRows && reader.Read())
+            {
+                eps.Add(new Episode(reader.GetInt32(0)));
+            }
+
+            return eps;
         }
 
         public string Name

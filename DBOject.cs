@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Data.SQLite;
 
 namespace DerpScrapper
@@ -11,6 +9,7 @@ namespace DerpScrapper
         public Dictionary<string, System.Data.DbType> columns;
         public int rowId = -1;
         public string table;
+        public static string tableName = "";
 
         public DBObject(string tableName, int rowId = -1) : base() 
         {
@@ -114,7 +113,6 @@ namespace DerpScrapper
                         if (!(colValue is System.DBNull))
                         {
                             System.Data.DbType type = this.columns[key];
-                            Console.WriteLine(key + " = " + type.ToString());
 
                             switch (type)
                             {

@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Net;
 using System.IO;
+using System.Linq;
+using System.Net;
+using System.Text;
+using DerpScrapper.DBO;
 using DerpScrapper.Scraper;
 using HtmlAgilityPack;
-using DerpScrapper.DBO;
 
 namespace DerpScrapper.DownloadSite_Scrapers
 {
