@@ -14,7 +14,6 @@ namespace DerpScrapper
         static void Main(string[] args)
         {
             Program.Setup();
-            Serie _serie = new Serie();
 
             Application.EnableVisualStyles();
             Application.Run(new Empty());
