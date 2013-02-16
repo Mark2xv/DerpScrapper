@@ -108,14 +108,42 @@ namespace DerpScrapper.Scraper
                         cost = (t.Substring(j - 1, 1) == s.Substring(i - 1, 1) ? 0 : 1);
 
                         // Step 6
-                        d[i, j] = System.Math.Min(System.Math.Min(d[i - 1, j] + 1, d[i, j - 1] + 1),
-                                  d[i - 1, j - 1] + cost);
+                        d[i, j] = System.Math.Min(
+                                   System.Math.Min(d[i - 1, j] + 1, d[i, j - 1] + 1),
+                                   d[i - 1, j - 1] + cost
+                                );
                     }
                 }
 
                 // Step 7
                 return d[n, m];
             }
-        
-    }
+
+
+            public static List<string> TagContents(string input, IEnumerable<Tuple<char, char>> removeCharCombos)
+            {
+                List<string> tags = new List<string>();
+                
+                // Get all stuff between brackets "( )" "[ ]" "< >" "{ }"
+                foreach (var charCombo in removeCharCombos)
+                {
+                    while (input.ContainsBoth(charCombo))
+                    {
+                        int idx1 = input.IndexOf(charCombo.Item1);
+                        int idx2 = input.IndexOf(charCombo.Item2);
+
+                        string tagContents = input.Substring(idx1 + 1, (idx2 - idx1) -1 );
+                        var parts = tagContents.Split(new char[]{' '}, StringSplitOptions.RemoveEmptyEntries);
+                        tags.AddRange(parts);
+
+                        string start = input.Substring(0, idx1);
+                        string end = input.Substring(idx2 + 1);
+
+                        input = (start + end).Trim();
+                    }
+                }
+
+                return tags;
+            }
+        }
 }

@@ -57,6 +57,15 @@ namespace DerpScrapper
         public static HtmlAgilityPack.HtmlNode GetNodeWithTypeAndClass(this HtmlAgilityPack.HtmlDocument doc, string type, string classname) {
             return doc.DocumentNode.Descendants(type).Where(p => p.HasAttributes && p.Attributes["class"] != null && p.Attributes["class"].Value != null && p.Attributes["class"].Value == classname).FirstOrDefault();
         }
-    }
 
+        public static string Implode(this IEnumerable<object> list, string glue)
+        {
+            string s = "";
+            foreach (var ob in list)
+            {
+                s += ob.ToString() + glue;
+            }
+            return s.TrimEnd(glue.ToArray());
+        }
+    }
 }
