@@ -16,7 +16,7 @@ namespace DerpScrapper
             Program.Setup();
 
             Application.EnableVisualStyles();
-            Application.Run(new Empty());
+            Application.Run(new TempForm());
         }
 
         static void Setup()
