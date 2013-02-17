@@ -1,12 +1,7 @@
 ﻿using System;
-using System.Data.SQLite;
-using System.Windows.Forms;
 using System.IO;
-using System.Collections.Generic;
+using System.Windows.Forms;
 using DerpScrapper.DBO;
-using DerpScrapper.DownloadSite_Scrapers;
-using DerpScrapper.Scrapers;
-using System.Threading;
 
 namespace DerpScrapper
 {
@@ -19,10 +14,9 @@ namespace DerpScrapper
         static void Main(string[] args)
         {
             Program.Setup();
-            Serie _serie = new Serie();
 
             Application.EnableVisualStyles();
-            Application.Run(new Empty());
+            Application.Run(new TempForm());
         }
 
         static void Setup()

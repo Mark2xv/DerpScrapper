@@ -1,14 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace DerpScrapper.DBO
 {
     class Genre : DBObject
     {
         public static Dictionary<string, System.Data.DbType> _columns = null;
-        public static string tableName = "Genre";
+        public new static string tableName
+        {
+            get { return "Genre"; }
+        }
 
         public Genre(int rowId = -1)
             : base("Genre", rowId)

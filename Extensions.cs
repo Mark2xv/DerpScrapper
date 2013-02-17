@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using System.Data.SQLite;
 
 namespace DerpScrapper
 {
@@ -17,6 +17,13 @@ namespace DerpScrapper
             System.DateTime dtDateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0);
             dtDateTime = dtDateTime.AddSeconds(timestamp).ToLocalTime();
             return dtDateTime;
+        }
+
+        public static SQLiteCommand CreateCommand(this SQLiteConnection connection, string query)
+        {
+            var com = connection.CreateCommand();
+            com.CommandText = query;
+            return com;
         }
 
         public static bool ContainsBoth(this string subject, Tuple<char, char> charCombo) 
@@ -50,6 +57,15 @@ namespace DerpScrapper
         public static HtmlAgilityPack.HtmlNode GetNodeWithTypeAndClass(this HtmlAgilityPack.HtmlDocument doc, string type, string classname) {
             return doc.DocumentNode.Descendants(type).Where(p => p.HasAttributes && p.Attributes["class"] != null && p.Attributes["class"].Value != null && p.Attributes["class"].Value == classname).FirstOrDefault();
         }
-    }
 
+        public static string Implode(this IEnumerable<object> list, string glue)
+        {
+            string s = "";
+            foreach (var ob in list)
+            {
+                s += ob.ToString() + glue;
+            }
+            return s.TrimEnd(glue.ToArray());
+        }
+    }
 }

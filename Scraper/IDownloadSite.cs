@@ -12,15 +12,22 @@ namespace DerpScrapper
         List<PossibleDownloadHit> GetDownloadsForSerieWithEpisodes(Serie serie, List<SeasonEpisode> episodes, List<Episode> episodeInfo);
     }
 
-    public struct SeasonEpisode
+    public class SeasonEpisode
     {
-        public SeasonEpisode(int seasonNumber, int episodeNumber)
+        public SeasonEpisode(int seasonNumber, int episodeNumber, string fileName = "")
         {
             this.seasonNumber = seasonNumber;
             this.episodeNumber = episodeNumber;
+            this.fileName = fileName;
+        }
+
+        public override string ToString()
+        {
+            return (fileName == "" ? "" : "") + "(" + this.seasonNumber + "x" + this.episodeNumber + ")";
         }
         public int seasonNumber;
         public int episodeNumber;
+        public string fileName;
     }
 
 }
