@@ -29,6 +29,7 @@ namespace DerpScrapper.Scrapers
             List<PossibleSearchHit> searchHits = new List<PossibleSearchHit>();
             var searchTableHits = searchDocument.GetElementbyId("listtable");
             bool firstNode = true;
+
             foreach (HtmlNode node in searchTableHits.Descendants("tr"))
             {
                 if (firstNode)
@@ -66,6 +67,33 @@ namespace DerpScrapper.Scrapers
             PossibleSearchHit preferredHit = null;
             PossibleSearchHit englishHit = FindEnglish(searchHits);
 
+            List<string> goodAlts = new List<string>();
+            List<string> badAlts = new List<string>();
+
+            var alts = searchHits.GroupBy(p => p.seriesId);
+            foreach (var group in alts)
+            {
+                if (group.Key == englishHit.seriesId)
+                {
+                    foreach (var goodAltNameHit in group)
+                    {
+                        string sGoodName = goodAltNameHit.seriesName.ToLower();
+                        if (!goodAlts.Contains(sGoodName))
+                            goodAlts.Add(sGoodName);
+                    }
+                }
+                else
+                {
+                    foreach (var badAltNameHit in group)
+                    {
+                        string sBadName = badAltNameHit.seriesName.ToLower();
+                        if(!badAlts.Contains(sBadName))
+                            badAlts.Add(sBadName);
+                    }
+                }
+            }
+            
+
             if (englishHit == null)
             {
                 // find out which other hit is preffered
@@ -81,8 +109,9 @@ namespace DerpScrapper.Scrapers
                 // shit.
             }
 
-
             serieInfo.serie.Name = preferredHit.seriesName;
+            serieInfo.metadata.NameAlternatives = goodAlts.Implode("|");
+            serieInfo.metadata.NameNonAlternatives = badAlts.Implode("|");
 
             Console.WriteLine("Getting metadata of series id " + preferredHit.seriesId.ToString() + " (Name = " + preferredHit.seriesName + ") ...");
             HtmlDocument metaDataDoc = ScraperUtility.HTMLDocumentOfContentFromURL("http://thetvdb.com/?tab=series&id=" + preferredHit.seriesId + "&lid=" + preferredHit.languageId);

@@ -8,8 +8,8 @@ namespace DerpScrapper
 {
     interface IDownloadSite
     {
-        List<PossibleDownloadHit> GetDownloadsForEntireSerie(Serie serie, List<Episode> episodeInfo);
-        List<PossibleDownloadHit> GetDownloadsForSerieWithEpisodes(Serie serie, List<SeasonEpisode> episodes, List<Episode> episodeInfo);
+        List<PossibleDownloadHit> GetDownloadsForEntireSerie(SerieInfo forSerie);
+        List<PossibleDownloadHit> GetDownloadsForSerieWithEpisodes(SerieInfo forSerie, List<Episode> wantedEpisodes);
     }
 
     public class SeasonEpisode

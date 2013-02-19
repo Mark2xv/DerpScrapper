@@ -28,6 +28,7 @@ namespace DerpScrapper.DBO
                 _columns.Add("EpisodeNumber", System.Data.DbType.Int32);
                 _columns.Add("EpisodeName", System.Data.DbType.String);
                 _columns.Add("Special", System.Data.DbType.Int32);
+                _columns.Add("Movie", System.Data.DbType.Int32);
                 _columns.Add("AirDate", System.Data.DbType.Int32);
                 _columns.Add("Synopsis", System.Data.DbType.String);
             }
@@ -115,6 +116,18 @@ namespace DerpScrapper.DBO
             set
             {
                 this["Special"] = value;
+            }
+        }
+
+        public bool isMovie
+        {
+            get
+            {
+                return (bool)this["Movie"];
+            }
+            set
+            {
+                this["Movie"] = value;
             }
         }
 
