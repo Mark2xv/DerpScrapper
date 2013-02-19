@@ -20,15 +20,8 @@ namespace DerpScrapper.DownloadSite_Scrapers
             APlus = 3
         }
 
-        TrustLevel trustLevel = TrustLevel.None;
-        private string baseUrl = "http://nyaa.eu/?page=search&minsize=50&cats=1_37&filter={1}&term={0}&offet={2}";
         private char[] splitBySpace = new[] { ' ' };
-        private List<Tuple<char, char>> removeCharCombos = new List<Tuple<char, char>>(new[] { 
-            new Tuple<char,char>('[', ']'),
-            new Tuple<char,char>('(', ')'),
-            new Tuple<char,char>('{', '}'),
-            new Tuple<char,char>('<', '>')
-        });
+
         private string[] acceptedFileTypes = new string[] { 
             "mkv", "avi", "wmv", "xvid", "divx", "mpg", "mp4"
         };
@@ -41,11 +34,15 @@ namespace DerpScrapper.DownloadSite_Scrapers
         private Regex special = new Regex(@"(ova|special)$", RegexOptions.IgnoreCase);
         private Regex endsWithDecimal = new Regex(@"\d+$");
         private Regex isRangeIndicator = new Regex(@"\d+[~-]{1}\d+");
+        private Regex isENDFile = new Regex(@"\d+.end", RegexOptions.IgnoreCase);
 
         private List<int> episodesFound = new List<int>();
 
-        public List<PossibleDownloadHit> GetDownloadsForEntireSerie(Serie serie, List<Episode> knownEpisodes)
+        public List<PossibleDownloadHit> GetDownloadsForEntireSerie(SerieInfo forSerie)
         {
+            var serie = forSerie.serie;
+            var knownEpisodes = forSerie.episodes;
+
             Log.WriteLine("\n\n--------------------NEW RUN----------------------\n\n");
 
             var list = this.getListOfAllDownloadsForName(serie["Name"].ToString(), knownEpisodes);
@@ -56,7 +53,59 @@ namespace DerpScrapper.DownloadSite_Scrapers
                 key++;
             }
 
-            return list;
+
+            Console.WriteLine("--------LISTING------------");
+            var grouped = list.GroupBy(p => p.qualityInfo.PreferenceBonus).OrderByDescending(p=>p.Key);
+            foreach (var x in grouped)
+            {
+                Console.WriteLine("List: PrefIndex = " + x.Key);
+                foreach (var y in x)
+                {
+                    Console.WriteLine(y.name + " | Q = " + y.qualityInfo);
+                }
+                Console.WriteLine("-----------------");
+            }
+
+            Console.WriteLine("\n------------------Getting hits--------------\n");
+
+            List<PossibleDownloadHit> downloads = new List<PossibleDownloadHit>();
+            foreach (Episode searchEpisode in knownEpisodes)
+            {
+                PossibleDownloadHit hit = null;
+
+                foreach (var prefGroup in grouped)
+                {
+                    foreach (var dlHit in prefGroup)
+                    {
+                        if (dlHit.episodes.Where(p => p.episodeNumber == searchEpisode.EpisodeNumber && p.seasonNumber == searchEpisode.SeasonNumber).FirstOrDefault() != null)
+                        {
+                            hit = dlHit;
+                            break;
+                        }
+                    }
+
+                    if (hit != null)
+                        break;
+                }
+
+                if (hit != null)
+                {
+                    if (!downloads.Contains(hit))
+                    {
+                        downloads.Add(hit);
+                    }
+                    else
+                    {
+                        // Not adding as this specific download had already been added
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Could not find anything for Ep " + searchEpisode.EpisodeNumber);
+                }
+            }
+
+            return downloads;
         }
 
         private List<SeasonEpisode> getEpisodeNumbersFromUrl(string serieName, string url, PossibleDownloadHit forHit)
@@ -71,7 +120,15 @@ namespace DerpScrapper.DownloadSite_Scrapers
                 string title = node.ChildNodes[0].InnerText;
                 string size = node.ChildNodes[1].InnerText;
 
-                string clTitle = ScraperUtility.CleanUpName(title, removeCharCombos).Replace("_", " ");
+                string clTitle = ScraperUtility.CleanUpName(title).Replace("_", " ");
+
+                // First check whether the file is in a folder, if so strip it off
+                // Keep taking the 'right' part
+                while (clTitle.Contains('/'))
+                {
+                    int idxOfSlash = clTitle.IndexOf('/');
+                    clTitle = (clTitle.Substring(idxOfSlash+1)).Trim();
+                }
 
                 int idxOfPeriod = title.LastIndexOf('.') + 1;
                 string ext = title.Substring(idxOfPeriod).Trim();
@@ -120,6 +177,8 @@ namespace DerpScrapper.DownloadSite_Scrapers
                             clTitle = clTitle.Substring(0, m.Index);
                         }
 
+
+
                         // Start off by trying to get everything after "-"
                         int lastIndexOfDash = clTitle.LastIndexOf('-');
                         string afterDash = clTitle.Substring(lastIndexOfDash + 1).Trim();
@@ -132,9 +191,14 @@ namespace DerpScrapper.DownloadSite_Scrapers
                             // If that fails, try with " "
                             int lastIndexOfSpace = clTitle.LastIndexOf(' ');
                             string afterSpace = clTitle.Substring(lastIndexOfSpace + 1).Trim();
+
                             if (int.TryParse(afterSpace, out epNr))
                             {
                                 list.Add(new SeasonEpisode(1, epNr, title));
+                            }
+                            else
+                            {
+                                string _tmpName = onlyAlphaNumeric.Replace(clTitle, "");
                             }
                         }
                     }
@@ -145,7 +209,6 @@ namespace DerpScrapper.DownloadSite_Scrapers
                 }
             }
             // TODO: lol hack
-            list.OrderBy(p => p.seasonNumber * 1000 + p.episodeNumber);
             return list;
         }
 
@@ -172,7 +235,6 @@ namespace DerpScrapper.DownloadSite_Scrapers
                 // Get the episodes from the detailpage
                 var eps = this.getEpisodeNumbersFromUrl(baseHit.origSerieName, baseHit.infoPageUrl, baseHit);
                 baseHit.episodes.AddRange(eps);
-                baseHit.preference += (int)Math.Ceiling((float)eps.Count / 3);
                 baseHit.qualityInfo.source = QualityInformation.Source.BlueRay;
                 return baseHit;
             }
@@ -211,8 +273,8 @@ namespace DerpScrapper.DownloadSite_Scrapers
                     if (s)
                     {
                         // Look through known ep info is there's any known serie with specifications as such
-                        string f = string.Format("{0} {1}", firstPart, epVal);
-                        var specialEpisodeMatch = FindEp(episodeInfo, f);
+                        string splitSpecialEpName = string.Format("{0} {1}", firstPart, epVal);
+                        var specialEpisodeMatch = FindEp(episodeInfo, splitSpecialEpName);
                         if (specialEpisodeMatch != null)
                         {
                             // actually found it!
@@ -221,7 +283,18 @@ namespace DerpScrapper.DownloadSite_Scrapers
                         }
                         else
                         {
-                            // nope.
+                            // nope. Could happen if all previous requirements hit, but for example name = {serieName} - {episodeName} - 1v2 - SPECIAL
+                            if (firstPart.EndsWith("v"))
+                                firstPart = firstPart.TrimEnd('v');
+
+                            int epNr;
+                            int idxOfSpace = firstPart.LastIndexOf(' ');
+                            if (idxOfSpace != -1 && int.TryParse(firstPart.Substring(idxOfSpace), out epNr)) 
+                            {
+                                specialEpisodeMatch = FindEp(episodeInfo, -1, epNr);
+                                if (specialEpisodeMatch != null)
+                                    baseHit.episodes.Add(new SeasonEpisode(-1, epNr, baseHit.name));
+                            }
                         }
                     }
                     else
@@ -280,6 +353,8 @@ namespace DerpScrapper.DownloadSite_Scrapers
             if (idxOfDash != 0)
             {
                 string epNrPart = parts.Item1.Substring(idxOfDash).Trim();
+                if (epNrPart.Contains(" end"))
+                    epNrPart = epNrPart.Substring(0, epNrPart.IndexOf(' '));
                 int epNr;
                 bool success = int.TryParse(epNrPart, out epNr);
                 if (success && FindEp(episodeInfo, epNr) != null) // If parsing succeeded and episode number exists
@@ -301,8 +376,11 @@ namespace DerpScrapper.DownloadSite_Scrapers
                         baseHit.episodes.Add(new SeasonEpisode(1, epNr, baseHit.name));
                         return baseHit;
                     }
+                    else
+                    {
+                        string _tmpName = onlyAlphaNumeric.Replace(parts.Item1, "");
+                    }
                 }
-                return null;
             }
             return null;
         }
@@ -406,11 +484,11 @@ namespace DerpScrapper.DownloadSite_Scrapers
             string name = WebUtility.HtmlDecode(title).Replace('_', ' ');
 
             // Fix name so there's no more underscores (It's fucking 2013. Come on now.), html entities and all useless stuff between brackets
-            string cleanName = ScraperUtility.CleanUpName(name, removeCharCombos);
+            string cleanName = ScraperUtility.CleanUpName(name);
 
             QualityInformation qual = new QualityInformation();
 
-            List<string> tags = ScraperUtility.TagContents(name, removeCharCombos);
+            List<string> tags = ScraperUtility.TagContents(name);
             foreach (string tag in tags)
             {
                 switch (tag.ToLower())
@@ -446,6 +524,10 @@ namespace DerpScrapper.DownloadSite_Scrapers
                     case "1280x720":
                         qual.resolution = QualityInformation.Resolution.HD720;
                         baseHit.preference++;
+                        break;
+
+                    case "480p":
+                        qual.resolution = QualityInformation.Resolution.Unknown_Lower;
                         break;
 
                     // Source
@@ -536,6 +618,11 @@ namespace DerpScrapper.DownloadSite_Scrapers
             return epInfo.Where(p => p.EpisodeName.ToLower() == epName).FirstOrDefault();
         }
 
+        private static Episode FindEp(List<Episode> epInfo, int seasonNr, int epNr)
+        {
+            return epInfo.Where(p => p.EpisodeNumber == epNr && p.SeasonNumber == seasonNr).FirstOrDefault();
+        }
+
         private static Episode FindEp(List<Episode> epInfo, int epNr)
         {
             return epInfo.Where(p => p.EpisodeNumber == epNr).FirstOrDefault();
@@ -545,48 +632,59 @@ namespace DerpScrapper.DownloadSite_Scrapers
         {
             var list = new List<PossibleDownloadHit>();
 
-            string rssUrl = string.Format("http://www.nyaa.eu/?page=rss&cats=1_37&term={0}", name);
-            Log.WriteLine("Getting contents of url: " + rssUrl + " ...");
-            string rss = ScraperUtility.GetContentOfUrl(rssUrl);
-            System.Xml.XmlDocument doc = new System.Xml.XmlDocument();
-            Log.WriteLine("Parsing XML...");
-            doc.LoadXml(rss);
-            for (int i = 0; i < doc.DocumentElement.FirstChild.ChildNodes.Count; i++)
+            int cOffset = 1;
+            while (true)
             {
-                XmlNode node = doc.DocumentElement.FirstChild.ChildNodes[i];
-                // Skip first 5 items - they are descriptors of the RSS Feed
-                if (node.Name != "item") continue;
-
-                PossibleDownloadHit hit = this.ParseItem(node, name, knownEpisodes);
-
-                if (hit == null)
-                    continue;
-
-                bool mustAbide = DownloadSettings.MustAbide;
-                QualityInformation prefferedQuality = DownloadSettings.PrefferedDownloadQuality;
-                if (mustAbide)
+                string rssUrl = string.Format("http://www.nyaa.eu/?page=rss&cats=1_37&term={0}&offset={1}", name, cOffset);
+                Log.WriteLine("Getting contents of url: " + rssUrl + " ...");
+                string rss = ScraperUtility.GetContentOfUrl(rssUrl);
+                System.Xml.XmlDocument doc = new System.Xml.XmlDocument();
+                Log.WriteLine("Parsing XML...");
+                doc.LoadXml(rss);
+                int itemsThisPage = 0;
+                for (int i = 0; i < doc.DocumentElement.FirstChild.ChildNodes.Count; i++)
                 {
-                    if (!(hit.qualityInfo.source == prefferedQuality.source && hit.qualityInfo.resolution == prefferedQuality.resolution && hit.qualityInfo.encoding == prefferedQuality.encoding))
-                    {
-                        Console.WriteLine("Dropped download: {0} - did not abide to set rules for downloads. (rules = {1}, hitQ = {2})", hit.name, prefferedQuality, hit.qualityInfo);
+                    XmlNode node = doc.DocumentElement.FirstChild.ChildNodes[i];
+                    // Skip first 5 items - they are descriptors of the RSS Feed
+                    if (node.Name != "item") continue;
+                    itemsThisPage++;
+
+                    PossibleDownloadHit hit = this.ParseItem(node, name, knownEpisodes);
+
+                    if (hit == null)
                         continue;
+
+                    bool mustAbide = DownloadSettings.MustAbide;
+                    QualityInformation prefferedQuality = DownloadSettings.PrefferedDownloadQuality;
+                    if (mustAbide)
+                    {
+                        if (!(hit.qualityInfo.source == prefferedQuality.source && hit.qualityInfo.resolution == prefferedQuality.resolution && hit.qualityInfo.encoding == prefferedQuality.encoding))
+                        {
+                            Console.WriteLine("Dropped download: {0} - did not abide to set rules for downloads. (rules = {1}, hitQ = {2})", hit.name, prefferedQuality, hit.qualityInfo);
+                            continue;
+                        }
                     }
+                    else
+                    {
+                        // Just prefer the ones who do abide to the preffered quality (as an extra above the default rules / pref system)
+                        if (hit.qualityInfo.encoding == prefferedQuality.encoding)
+                            hit.preference += 5;
+
+                        if (hit.qualityInfo.resolution == prefferedQuality.resolution)
+                            hit.preference += 5;
+
+                        if (hit.qualityInfo.source == prefferedQuality.source)
+                            hit.preference += 5;
+                    }
+
+                    if (hit != null)
+                        list.Add(hit);
                 }
-                else
-                {
-                    // Just prefer the ones who do abide to the preffered quality (as an extra above the default rules / pref system)
-                    if (hit.qualityInfo.encoding == prefferedQuality.encoding)
-                        hit.preference += 5;
 
-                    if (hit.qualityInfo.resolution == prefferedQuality.resolution)
-                        hit.preference += 5;
+                if (itemsThisPage == 0)
+                    break;
 
-                    if (hit.qualityInfo.source == prefferedQuality.source)
-                        hit.preference += 5;
-                }
-
-                if (hit != null)
-                    list.Add(hit);
+                cOffset++;
             }
 
             list = Nyaa.OrderPreferenceThenEpCount(list);
@@ -600,7 +698,7 @@ namespace DerpScrapper.DownloadSite_Scrapers
             return list;
         }
 
-        public List<PossibleDownloadHit> GetDownloadsForSerieWithEpisodes(Serie serie, List<SeasonEpisode> episodes, List<Episode> epInfo)
+        public List<PossibleDownloadHit> GetDownloadsForSerieWithEpisodes(SerieInfo forSerie, List<Episode> wantedEpisodes)
         {
             throw new NotImplementedException();
         }

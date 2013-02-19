@@ -24,11 +24,30 @@ namespace DerpScrapper
 
     class SerieInfo
     {
-        public Serie serie = new Serie();
-        public List<Episode> episodes = new List<Episode>();
-        public List<SerieGenre> genres = new List<SerieGenre>();
-        public SerieMetadata metadata = new SerieMetadata();
-        public SerieResource resource = new SerieResource();
+        // empty (def) ctor
+        public SerieInfo()
+        {
+            serie = new Serie();
+            episodes = new List<Episode>();
+            genres = new List<SerieGenre>();
+            metadata = new SerieMetadata();
+            resource = new SerieResource();
+        }
+
+        public SerieInfo(Serie serie)
+        {
+            this.serie = serie;
+            this.episodes = serie.GetEpisodes();
+            this.genres = serie.GetGenres();
+            this.metadata = serie.GetMetadata();
+            this.resource = serie.GetResource();
+        }
+
+        public Serie serie;
+        public List<Episode> episodes;
+        public List<SerieGenre> genres;
+        public SerieMetadata metadata;
+        public SerieResource resource;
     }
 
     public class PossibleDownloadHit
@@ -95,7 +114,8 @@ namespace DerpScrapper
             Unknown_Lower
         }
 
-        public QualityInformation(Source s, Resolution r, Encoding e) {
+        public QualityInformation(Source s, Resolution r, Encoding e)
+        {
             this.resolution = r;
             this.source = s;
             this.encoding = e;
@@ -107,7 +127,7 @@ namespace DerpScrapper
             {
                 int p = 0;
                 switch (source)
-                {   
+                {
                     case Source.BlueRay:
                         p += 3;
                         break;

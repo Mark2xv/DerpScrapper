@@ -63,78 +63,45 @@ namespace DerpScrapper
                 string query = (string)a;
 
                 Serie serie = Serie.GetByName(query);
-                List<Episode> episodes = null;
+                SerieInfo info;
                 if (serie == null)
                 {
                     TVDBScraper tvDb = new TVDBScraper();
-                    SerieInfo serieInfo = tvDb.FindAllInformationForSerie(query);
+                    info = tvDb.FindAllInformationForSerie(query);
 
-                    int serieId = serieInfo.serie.Insert();
-                    serieInfo.metadata.SerieId = serieId;
-                    serieInfo.resource.SerieId = serieId;
+                    int serieId = info.serie.Insert();
+                    info.metadata.SerieId = serieId;
+                    info.resource.SerieId = serieId;
 
-                    serieInfo.metadata.Insert();
-                    serieInfo.resource.Insert();
+                    info.metadata.Insert();
+                    info.resource.Insert();
 
-                    foreach (SerieGenre gen in serieInfo.genres)
+                    foreach (SerieGenre gen in info.genres)
                     {
                         gen.SerieId = serieId;
                         gen.Insert();
                     }
 
-                    foreach (Episode ep in serieInfo.episodes)
+                    foreach (Episode ep in info.episodes)
                     {
                         ep.SerieId = serieId;
                         ep.Insert();
                     }
 
-                    serie = serieInfo.serie;
-                    episodes = serieInfo.episodes;
+                    serie = info.serie;
                 }
                 else
                 {
-                    episodes = serie.GetEpisodes();
+                    info = new SerieInfo(serie);
                 }
 
-                var nyaaScraper = new Nyaa();
-                var downloads = nyaaScraper.GetDownloadsForEntireSerie(serie, episodes);
-                return new DerpThing() { Name = query, List = null, idx = 1 };
+                var nyaaScraper = new BakaBT();
+                var downloads = nyaaScraper.GetDownloadsForEntireSerie(info);
+                return new DerpThing() { Name = query, List = downloads, idx = 1 };
             };
 
-            Func<object, object> task2 = (object a) =>
-            {
-                Serie serie = new Serie();
-                serie["Name"] = (string)a;
 
-                var x = new Nyaa();
-                var list = x.GetDownloadsForEntireSerie(serie, null);
-                return new DerpThing() { Name = serie["Name"].ToString(), List = list, idx = 2 };
-            };
-
-            Func<object, object> task3 = (object a) =>
-            {
-                Serie serie = new Serie();
-                serie["Name"] = (string)a;
-
-                var x = new Nyaa();
-                var list = x.GetDownloadsForEntireSerie(serie, null);
-                return new DerpThing() { Name = serie["Name"].ToString(), List = list, idx = 3 };
-            };
-
-            Func<object, object> task4 = (object a) =>
-            {
-                Serie serie = new Serie();
-                serie["Name"] = (string)a;
-
-                var x = new Nyaa();
-                var list = x.GetDownloadsForEntireSerie(serie, null);
-                return new DerpThing() { Name = serie["Name"].ToString(), List = list, idx = 4 };
-            };
-
-            WorkThreadManager.Instance.AddNewTask(task1, "Sword art online", true, CallbackForThreads);
-            //WorkThreadManager.Instance.AddNewTask(task2, "Dog Days", false, CallbackForThreads);
-            //WorkThreadManager.Instance.AddNewTask(task3, "Hyouka", true, CallbackForThreads);
-            //WorkThreadManager.Instance.AddNewTask(task4, "Psycho-Pass", false, CallbackForThreads);
+            WorkThreadManager.Instance.AddNewTask(task1, "Naruto shippuuden", true, CallbackForThreads);
         }
 
         class DerpThing

@@ -11,15 +11,17 @@ namespace DerpScrapper.DownloadSite_Scrapers
         Uri baseUri = new Uri("http://tokyotosho.info");
         string format = "/search.php?terms={0}&type=1&size_min=50";
 
-        public List<PossibleDownloadHit> GetDownloadsForEntireSerie(DBO.Serie serie, List<Episode> epInfo)
+        public List<PossibleDownloadHit> GetDownloadsForEntireSerie(SerieInfo forSerie)
         {
+            var serie = forSerie.serie;
+
             var doc = ScraperUtility.HTMLDocumentOfContentFromURL(new Uri(baseUri, string.Format(format, serie["Name"])).AbsoluteUri);
             var table = doc.DocumentNode.Descendants("table").First().Descendants("tr");
 
             return null;
         }
 
-        public List<PossibleDownloadHit> GetDownloadsForSerieWithEpisodes(DBO.Serie serie, List<SeasonEpisode> episodes, List<Episode> epInfo)
+        public List<PossibleDownloadHit> GetDownloadsForSerieWithEpisodes(SerieInfo forSerie, List<Episode> epInfo)
         {
             throw new NotImplementedException();
         }

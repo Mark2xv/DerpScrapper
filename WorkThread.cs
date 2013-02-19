@@ -65,7 +65,11 @@ namespace DerpScrapper
                 }
                 e.Result = task(argument);
             }
-            // why did you create this workthread without a task
+            else
+            {
+                // why did you create this workthread without a task
+                throw new Exception("WorkItem without task..?");
+            }
         }
 
         public void Start()

@@ -29,6 +29,8 @@ namespace DerpScrapper.DBO
                 _columns.Add("Airday", System.Data.DbType.String);
                 _columns.Add("Runtime", System.Data.DbType.Int32);
                 _columns.Add("Network", System.Data.DbType.String);
+                _columns.Add("NameAlternatives", System.Data.DbType.String);
+                _columns.Add("NameNonAlternatives", System.Data.DbType.String);
 
             }
             this.columns = _columns;
@@ -91,6 +93,30 @@ namespace DerpScrapper.DBO
             set
             {
                 this["Network"] = value;
+            }
+        }
+
+        public string NameAlternatives
+        {
+            get
+            {
+                return (string)this["NameAlternatives"];
+            }
+            set
+            {
+                this["NameAlternatives"] = value;
+            }
+        }
+
+        public string NameNonAlternatives
+        {
+            get
+            {
+                return (string)this["NameNonAlternatives"];
+            }
+            set
+            {
+                this["NameNonAlternatives"] = value;
             }
         }
     }

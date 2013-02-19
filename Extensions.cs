@@ -49,6 +49,16 @@ namespace DerpScrapper
             return true;
         }
 
+        public static bool ContainsAny(this string subject, IEnumerable<string> checkAgainst)
+        {
+            foreach (string part in checkAgainst)
+            {
+                if (subject.Contains(part))
+                    return true;
+            }
+            return false;
+        }
+
         public static bool Matches(this string subject, System.Text.RegularExpressions.Regex reg)
         {
             return reg.IsMatch(subject);
