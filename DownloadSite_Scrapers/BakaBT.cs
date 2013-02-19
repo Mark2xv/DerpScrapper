@@ -170,7 +170,7 @@ namespace DerpScrapper.DownloadSite_Scrapers
 
             if (hits_serie.Count >= 2)
             {
-                Console.WriteLine("Not 100% final yet. (for imcompletes/neverending such as naruto shipp, pokemon, etc)");
+                Console.WriteLine("Not 100% final yet. (for incompletes/neverending such as naruto shipp, pokemon, etc)");
                 foreach (var serieHit in hits_serie)
                 {
                     string clName = ScraperUtility.CleanUpName(serieHit.name);
