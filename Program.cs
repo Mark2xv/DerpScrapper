@@ -16,7 +16,11 @@ namespace DerpScrapper
             Program.Setup();
 
             Application.EnableVisualStyles();
+<<<<<<< HEAD
             Application.Run(new Empty());
+=======
+            Application.Run(new UI.Main());
+>>>>>>> Commit to get newest DB structure in dev branch
         }
 
         static void Setup()
