@@ -210,7 +210,7 @@ namespace DerpScrapper.Scrapers
                     }
                     else if (propNr == 2)
                     {
-                        ep.AirDate = DateTime.Parse(subNode.InnerText).ToUnixTimestamp();
+                        ep.AirDate = subNode.InnerText != "" ? DateTime.Parse(subNode.InnerText).ToUnixTimestamp() : 0;
                     }
                     else if (propNr == 3)
                     {

@@ -15,8 +15,8 @@ namespace DerpScrapper.DownloadSite_Scrapers
     {
         bool loggedIn = false;
         CookieContainer cookieContainer = new CookieContainer();
-        private static Regex onlyAlphaNumeric = new Regex(@"[^\w\s]");
-        private static Regex seasonCheck = new Regex(@"(season|s){1}.+(\d)+$");
+        private static Regex onlyAlphaNumeric = new Regex(@"[^\w\s]", RegexOptions.IgnoreCase);
+        private static Regex seasonCheck = new Regex(@"(season|s){1}.+(\d)+", RegexOptions.IgnoreCase);
 
         private bool login()
         {
@@ -190,9 +190,31 @@ namespace DerpScrapper.DownloadSite_Scrapers
             {
                 var doc = ScraperUtility.HTMLDocumentOfContentFromURL(searchHit.url, cookieContainer, null, true);
                 var node = doc.GetNodeWithTypeAndClass("a", "download_link");
-                string tUrl = "http://bakabt.me" + node.GetAttributeValue("href", "");
+                string torrentUrl = "";
+                if (node == null)
+                {
+                    if (searchHit.alternatives != null)
+                    {
+                        // get new link
 
-                retVal.Add(new PossibleDownloadHit() { origSerieName = forSerie.serie.Name, name = searchHit.name, infoPageUrl = searchHit.url, url = tUrl });
+                        int k = 0;
+                        while (torrentUrl == "" && k < (searchHit.alternatives.Count - 1))
+                        {
+                            var altDoc = ScraperUtility.HTMLDocumentOfContentFromURL(searchHit.alternatives[k++].url, cookieContainer, null, true);
+                            var altNode = altDoc.GetNodeWithTypeAndClass("a", "download_link");
+                            if (altNode == null)
+                                continue;
+                            torrentUrl = "http://bakabt.me" + altNode.GetAttributeValue("href", "");
+                            Console.WriteLine("Hit " + searchHit.name + " did not have a download link (perhaps new or otherwise disabled torrent on BakaBT - taking alternative " + searchHit.alternatives[k].name);
+                        }
+                    }
+                }
+                else
+                {
+                    torrentUrl = "http://bakabt.me" + node.GetAttributeValue("href", "");
+                }
+
+                retVal.Add(new PossibleDownloadHit() { origSerieName = forSerie.serie.Name, name = searchHit.name, infoPageUrl = searchHit.url, url = torrentUrl });
             }
 
             return retVal;
@@ -293,7 +315,18 @@ namespace DerpScrapper.DownloadSite_Scrapers
 
         private class BakaBTSearchHit
         {
-            public string name;
+            private string _name;
+            public string name
+            {
+                get
+                {
+                    return _name;
+                }
+                set
+                {
+                    _name = WebUtility.HtmlDecode(value);
+                }
+            }
             public string url;
             public string type;
             public List<string> tags;

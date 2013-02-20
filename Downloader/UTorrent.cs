@@ -29,7 +29,9 @@ namespace DerpScrapper.Downloader
 
         public static void AddTorrent(Uri url)
         {
-            client.Torrents.AddUrl(url.AbsolutePath);
+            WebClient x = new WebClient();
+            x.DownloadFile(url, @"D:\Downloads\TorrentsBlackhole\" + Guid.NewGuid().ToString() + ".torrent");
+            //client.Torrents.AddUrl(url.AbsolutePath);
         }
 
         public static void AddTorrent(string filePath)

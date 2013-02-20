@@ -10,6 +10,7 @@ using DerpScrapper.DBO;
 using DerpScrapper.DownloadSite_Scrapers;
 using DerpScrapper.Downloader;
 using DerpScrapper.Scrapers;
+using System.IO;
 
 namespace DerpScrapper
 {
@@ -97,11 +98,17 @@ namespace DerpScrapper
 
                 var nyaaScraper = new BakaBT();
                 var downloads = nyaaScraper.GetDownloadsForEntireSerie(info);
+
+                foreach (var dl in downloads)
+                {
+                    UTorrent.AddTorrent(new Uri(dl.url));
+                }
+
                 return new DerpThing() { Name = query, List = downloads, idx = 1 };
             };
 
 
-            WorkThreadManager.Instance.AddNewTask(task1, "Naruto shippuuden", true, CallbackForThreads);
+            WorkThreadManager.Instance.AddNewTask(task1, "pokemon", true, CallbackForThreads);
         }
 
         class DerpThing
