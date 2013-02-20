@@ -2,7 +2,7 @@
 
 namespace DerpScrapper.DBO
 {
-    class ResourceSite : DBObject
+    public class ResourceSite : DBObject
     {
         public static Dictionary<string, System.Data.DbType> _columns = null;
 

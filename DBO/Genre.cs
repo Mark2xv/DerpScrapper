@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace DerpScrapper.DBO
 {
-    class Genre : DBObject
+    public class Genre : DBObject
     {
         public static Dictionary<string, System.Data.DbType> _columns = null;
         public new static string tableName
