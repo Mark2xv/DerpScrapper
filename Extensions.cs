@@ -77,5 +77,29 @@ namespace DerpScrapper
             }
             return s.TrimEnd(glue.ToArray());
         }
+
+        /* Language picker requirements */
+        public static Dictionary<string, string> Languages()
+        {
+            Dictionary<string, string> languages = new Dictionary<string, string>();
+            languages.Add("nl", "Dutch");
+            languages.Add("en", "English");
+            languages.Add("sp", "Spanish");
+            languages.Add("jp", "Japanese");
+            languages.Add("de", "German");
+            return languages;
+        }
+
+        public class ComboboxItem
+        {
+            public string Text { get; set; }
+            public object Value { get; set; }
+
+            public override string ToString()
+            {
+                return Text;
+            }
+        }
+        /* End of requirements */
     }
 }

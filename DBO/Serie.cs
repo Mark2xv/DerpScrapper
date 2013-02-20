@@ -2,7 +2,7 @@
 
 namespace DerpScrapper.DBO
 {
-    class Serie : DBObject
+    public class Serie : DBObject
     {
         public static Dictionary<string, System.Data.DbType> _columns = null;
 
@@ -32,6 +32,7 @@ namespace DerpScrapper.DBO
             if (_columns == null)
             {
                 _columns = new Dictionary<string, System.Data.DbType>();
+                _columns.Add("LibraryId", System.Data.DbType.Int32);
                 _columns.Add("Name", System.Data.DbType.String);
                 _columns.Add("Plot", System.Data.DbType.String);
                 _columns.Add("Ongoing", System.Data.DbType.Int32);
@@ -184,6 +185,18 @@ namespace DerpScrapper.DBO
             set
             {
                 this["UpdatePlanned"] = value;
+            }
+        }
+
+        public int LibraryId
+        {
+            get
+            {
+                return (int)this["LibraryId"];
+            }
+            set
+            {
+                this["LibraryId"] = value;
             }
         }
     }

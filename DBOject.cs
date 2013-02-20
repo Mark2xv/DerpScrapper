@@ -4,7 +4,7 @@ using System.Data.SQLite;
 
 namespace DerpScrapper
 {
-    partial class DBObject : Dictionary<string, object>
+    public partial class DBObject : Dictionary<string, object>
     {
         public Dictionary<string, System.Data.DbType> columns;
         public int rowId = -1;

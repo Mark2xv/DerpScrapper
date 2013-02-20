@@ -2,7 +2,7 @@
 
 namespace DerpScrapper.DBO
 {
-    class SerieGenre : DBObject
+    public class SerieGenre : DBObject
     {
         public static Dictionary<string, System.Data.DbType> _columns = null;
 
