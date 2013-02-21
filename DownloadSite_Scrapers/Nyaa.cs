@@ -702,5 +702,15 @@ namespace DerpScrapper.DownloadSite_Scrapers
         {
             throw new NotImplementedException();
         }
+
+        public bool SupportsPartial()
+        {
+            return true;
+        }
+
+        public bool SupportsFull()
+        {
+            return true;
+        }
     }
 }

@@ -16,7 +16,7 @@ namespace DerpScrapper
             Program.Setup();
 
             Application.EnableVisualStyles();
-            Application.Run(new UI.Main());
+            Application.Run(new Empty());
         }
 
         static void Setup()

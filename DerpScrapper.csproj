@@ -41,6 +41,7 @@
     <Reference Include="HtmlAgilityPack">
       <HintPath>.\HtmlAgilityPack.dll</HintPath>
     </Reference>
+    <Reference Include="Newtonsoft.Json, Version=4.5.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data.SQLite">
@@ -61,6 +62,10 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="APIs\DailyTvTorrentsAPI\DailyTvTorrents.cs" />
+    <Compile Include="APIs\DailyTvTorrentsAPI\Episode.cs" />
+    <Compile Include="APIs\DailyTvTorrentsAPI\Show.cs" />
+    <Compile Include="APIs\DailyTvTorrentsAPI\Torrent.cs" />
     <Compile Include="BaseDB.cs" />
     <Compile Include="DBOject.cs" />
     <Compile Include="DBO\Episode.cs" />
@@ -73,6 +78,7 @@
     <Compile Include="DBO\SerieResource.cs" />
     <Compile Include="Downloader\UTorrent.cs" />
     <Compile Include="DownloadSite_Scrapers\BakaBT.cs" />
+    <Compile Include="DownloadSite_Scrapers\DailyTVTorrents.cs" />
     <Compile Include="DownloadSite_Scrapers\DownloadSettings.cs" />
     <Compile Include="DownloadSite_Scrapers\Nyaa.cs" />
     <Compile Include="DownloadSite_Scrapers\TokyoToshokan.cs" />

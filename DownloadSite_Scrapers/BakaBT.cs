@@ -332,5 +332,15 @@ namespace DerpScrapper.DownloadSite_Scrapers
             public List<string> tags;
             public List<BakaBTSearchHit> alternatives;
         }
+
+        public bool SupportsPartial()
+        {
+            return false;
+        }
+
+        public bool SupportsFull()
+        {
+            return true;
+        }
     }
 }

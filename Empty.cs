@@ -96,7 +96,7 @@ namespace DerpScrapper
                     info = new SerieInfo(serie);
                 }
 
-                var nyaaScraper = new BakaBT();
+                var nyaaScraper = new DailyTVTorrents();
                 var downloads = nyaaScraper.GetDownloadsForEntireSerie(info);
 
                 foreach (var dl in downloads)
@@ -108,7 +108,7 @@ namespace DerpScrapper
             };
 
 
-            WorkThreadManager.Instance.AddNewTask(task1, "pokemon", true, CallbackForThreads);
+            WorkThreadManager.Instance.AddNewTask(task1, "Person of Interest", true, CallbackForThreads);
         }
 
         class DerpThing

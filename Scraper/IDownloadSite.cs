@@ -8,6 +8,9 @@ namespace DerpScrapper
 {
     interface IDownloadSite
     {
+        bool SupportsPartial();
+        bool SupportsFull();
+
         List<PossibleDownloadHit> GetDownloadsForEntireSerie(SerieInfo forSerie);
         List<PossibleDownloadHit> GetDownloadsForSerieWithEpisodes(SerieInfo forSerie, List<Episode> wantedEpisodes);
     }
