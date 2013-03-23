@@ -5,7 +5,7 @@ namespace DerpScrapper.DBO
 {
     public class Genre : DBObject
     {
-        public static Dictionary<string, System.Data.DbType> _columns = null;
+        public static Dictionary<string, DerpScrapper.BaseDB.SQLiteDBType> _columns = null;
         public new static string tableName
         {
             get { return "Genre"; }
@@ -21,8 +21,8 @@ namespace DerpScrapper.DBO
         {
             if (_columns == null)
             {
-                _columns = new Dictionary<string, System.Data.DbType>();
-                _columns.Add("Name", System.Data.DbType.String);
+                _columns = new Dictionary<string, DerpScrapper.BaseDB.SQLiteDBType>();
+                _columns.Add("Name", DerpScrapper.BaseDB.SQLiteDBType.Text);
             }
             this.columns = _columns;
         }

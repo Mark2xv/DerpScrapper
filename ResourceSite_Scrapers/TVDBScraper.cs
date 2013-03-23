@@ -5,6 +5,7 @@ using System.Text;
 using HtmlAgilityPack;
 using DerpScrapper.Scraper;
 using DerpScrapper.DBO;
+using System.Net;
 
 namespace DerpScrapper.Scrapers
 {
@@ -45,7 +46,8 @@ namespace DerpScrapper.Scrapers
                     if (tdNumber == 0)
                     {
                         // link stuff
-                        searchHit.seriesName = subNode.FirstChild.InnerText;
+                        
+                        searchHit.seriesName = WebUtility.HtmlDecode(subNode.FirstChild.InnerText);
 
                         var parts = subNode.FirstChild.Attributes["href"].Value.Split(new[] { "&" }, StringSplitOptions.RemoveEmptyEntries);
                         searchHit.languageId = int.Parse(ScraperUtility.PartAfterEquals(parts[2]));

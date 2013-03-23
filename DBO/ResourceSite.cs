@@ -4,7 +4,7 @@ namespace DerpScrapper.DBO
 {
     public class ResourceSite : DBObject
     {
-        public static Dictionary<string, System.Data.DbType> _columns = null;
+        public static Dictionary<string, DerpScrapper.BaseDB.SQLiteDBType> _columns = null;
 
         public new static string tableName
         {
@@ -20,9 +20,9 @@ namespace DerpScrapper.DBO
         {
             if (_columns == null)
             {
-                _columns = new Dictionary<string, System.Data.DbType>();
-                _columns.Add("Url", System.Data.DbType.String);
-                _columns.Add("Priority", System.Data.DbType.Int32);
+                _columns = new Dictionary<string, DerpScrapper.BaseDB.SQLiteDBType>();
+                _columns.Add("Url", DerpScrapper.BaseDB.SQLiteDBType.Text);
+                _columns.Add("Priority", DerpScrapper.BaseDB.SQLiteDBType.Integer);
             }
             this.columns = _columns;
         }

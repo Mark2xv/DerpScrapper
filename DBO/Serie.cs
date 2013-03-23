@@ -4,7 +4,7 @@ namespace DerpScrapper.DBO
 {
     public class Serie : DBObject
     {
-        public static Dictionary<string, System.Data.DbType> _columns = null;
+        public static Dictionary<string, DerpScrapper.BaseDB.SQLiteDBType> _columns = null;
 
         public new static string tableName
         {
@@ -31,15 +31,15 @@ namespace DerpScrapper.DBO
         {
             if (_columns == null)
             {
-                _columns = new Dictionary<string, System.Data.DbType>();
-                _columns.Add("LibraryId", System.Data.DbType.Int32);
-                _columns.Add("Name", System.Data.DbType.String);
-                _columns.Add("Plot", System.Data.DbType.String);
-                _columns.Add("Ongoing", System.Data.DbType.Int32);
-                _columns.Add("Language", System.Data.DbType.String);
-                _columns.Add("FolderPath", System.Data.DbType.String);
-                _columns.Add("FolderIsNetworkMount", System.Data.DbType.Int32);
-                _columns.Add("UpdatePlanned", System.Data.DbType.Int32);
+                _columns = new Dictionary<string, DerpScrapper.BaseDB.SQLiteDBType>();
+                _columns.Add("LibraryId", DerpScrapper.BaseDB.SQLiteDBType.Integer);
+                _columns.Add("Name", DerpScrapper.BaseDB.SQLiteDBType.Text);
+                _columns.Add("Plot", DerpScrapper.BaseDB.SQLiteDBType.Text);
+                _columns.Add("Ongoing", DerpScrapper.BaseDB.SQLiteDBType.Integer);
+                _columns.Add("Language", DerpScrapper.BaseDB.SQLiteDBType.Text);
+                _columns.Add("FolderPath", DerpScrapper.BaseDB.SQLiteDBType.Text);
+                _columns.Add("FolderIsNetworkMount", DerpScrapper.BaseDB.SQLiteDBType.Integer);
+                _columns.Add("UpdatePlanned", DerpScrapper.BaseDB.SQLiteDBType.Integer);
             }
 
 
@@ -58,6 +58,11 @@ namespace DerpScrapper.DBO
             }
 
             return eps;
+        }
+
+        public List<Episode> GetOwnedEpisodes()
+        {
+            return null;
         }
 
         public List<SerieGenre> GetGenres()

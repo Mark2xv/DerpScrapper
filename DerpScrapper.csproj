@@ -89,6 +89,7 @@
       <DependentUpon>Empty.cs</DependentUpon>
     </Compile>
     <Compile Include="Extensions.cs" />
+    <Compile Include="Library\LibraryTest.cs" />
     <Compile Include="Log.cs" />
     <Compile Include="Scraper\IDownloadSite.cs" />
     <Compile Include="Program.cs" />

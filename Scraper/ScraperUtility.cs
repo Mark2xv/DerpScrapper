@@ -7,7 +7,7 @@ using System.Text.RegularExpressions;
 
 namespace DerpScrapper.Scraper
 {
-    class ScraperUtility
+    static class ScraperUtility
     {
         private static List<Tuple<char, char>> removeCharCombos = new List<Tuple<char, char>>(new[] { 
             new Tuple<char,char>('[', ']'),
@@ -153,6 +153,49 @@ namespace DerpScrapper.Scraper
             }
 
             return tags;
+        }
+
+        public static bool DoesContain(this List<PossibleDownloadHit> subject, SeasonEpisode item)
+        {
+            foreach (var hit in subject)
+            {
+                if (hit.episodes.DoesContain(item))
+                    return true;
+            }
+            return false;
+        }
+
+        public static bool DoesContain(this List<SeasonEpisode> subject, SeasonEpisode item)
+        {
+            foreach (var episode in subject)
+            {
+                if (episode.seasonNumber == item.seasonNumber && episode.episodeNumber == item.episodeNumber)
+                    return true;
+            }
+            return false;
+        }
+
+        public static PossibleDownloadHit FindBySeasonEpisode(this List<PossibleDownloadHit> subject, SeasonEpisode item)
+        {
+            foreach (var hit in subject)
+            {
+                var sHit = hit.episodes.FindBySeasonEpisode(item);
+                if (sHit != null)
+                {
+                    return hit;
+                }
+            }
+            return null;
+        }
+
+        public static SeasonEpisode FindBySeasonEpisode(this List<SeasonEpisode> subject, SeasonEpisode item)
+        {
+            foreach (var sEp in subject)
+            {
+                if (item.seasonNumber == sEp.seasonNumber && item.episodeNumber == sEp.episodeNumber)
+                    return sEp;
+            }
+            return null;
         }
     }
 }

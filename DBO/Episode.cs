@@ -4,7 +4,7 @@ namespace DerpScrapper.DBO
 {
     public class Episode : DBObject
     {
-        public static Dictionary<string, System.Data.DbType> _columns = null;
+        public static Dictionary<string, DerpScrapper.BaseDB.SQLiteDBType> _columns = null;
         public new static string tableName
         {
             get { return "Episode"; }
@@ -20,17 +20,18 @@ namespace DerpScrapper.DBO
         {
             if (_columns == null)
             {
-                _columns = new Dictionary<string, System.Data.DbType>();
-                _columns.Add("SerieId", System.Data.DbType.Int64);
-                _columns.Add("FileName", System.Data.DbType.String);
-                _columns.Add("AbsoluteEpisodeNumber", System.Data.DbType.Int32);
-                _columns.Add("SeasonNumber", System.Data.DbType.Int32);
-                _columns.Add("EpisodeNumber", System.Data.DbType.Int32);
-                _columns.Add("EpisodeName", System.Data.DbType.String);
-                _columns.Add("Special", System.Data.DbType.Int32);
-                _columns.Add("Movie", System.Data.DbType.Int32);
-                _columns.Add("AirDate", System.Data.DbType.Int32);
-                _columns.Add("Synopsis", System.Data.DbType.String);
+                _columns = new Dictionary<string, DerpScrapper.BaseDB.SQLiteDBType>();
+                _columns.Add("SerieId", DerpScrapper.BaseDB.SQLiteDBType.Integer);
+                _columns.Add("FileName", DerpScrapper.BaseDB.SQLiteDBType.Text);
+                _columns.Add("Downloading", DerpScrapper.BaseDB.SQLiteDBType.Integer);
+                _columns.Add("AbsoluteEpisodeNumber", DerpScrapper.BaseDB.SQLiteDBType.Integer);
+                _columns.Add("SeasonNumber", DerpScrapper.BaseDB.SQLiteDBType.Integer);
+                _columns.Add("EpisodeNumber", DerpScrapper.BaseDB.SQLiteDBType.Integer);
+                _columns.Add("EpisodeName", DerpScrapper.BaseDB.SQLiteDBType.Text);
+                _columns.Add("Special", DerpScrapper.BaseDB.SQLiteDBType.Integer);
+                _columns.Add("Movie", DerpScrapper.BaseDB.SQLiteDBType.Integer);
+                _columns.Add("AirDate", DerpScrapper.BaseDB.SQLiteDBType.Integer);
+                _columns.Add("Synopsis", DerpScrapper.BaseDB.SQLiteDBType.Text);
             }
             this.columns = _columns;
         }

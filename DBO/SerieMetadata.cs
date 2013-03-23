@@ -4,7 +4,7 @@ namespace DerpScrapper.DBO
 {
     public class SerieMetadata : DBObject
     {
-        public static Dictionary<string, System.Data.DbType> _columns = null;
+        public static Dictionary<string, DerpScrapper.BaseDB.SQLiteDBType> _columns = null;
 
         public new static string tableName
         {
@@ -22,15 +22,15 @@ namespace DerpScrapper.DBO
         {
             if (_columns == null)
             {
-                _columns = new Dictionary<string, System.Data.DbType>();
+                _columns = new Dictionary<string, DerpScrapper.BaseDB.SQLiteDBType>();
 
-                _columns.Add("SerieId", System.Data.DbType.Int32);
-                _columns.Add("FirstAired", System.Data.DbType.Int32);
-                _columns.Add("Airday", System.Data.DbType.String);
-                _columns.Add("Runtime", System.Data.DbType.Int32);
-                _columns.Add("Network", System.Data.DbType.String);
-                _columns.Add("NameAlternatives", System.Data.DbType.String);
-                _columns.Add("NameNonAlternatives", System.Data.DbType.String);
+                _columns.Add("SerieId", DerpScrapper.BaseDB.SQLiteDBType.Integer);
+                _columns.Add("FirstAired", DerpScrapper.BaseDB.SQLiteDBType.Integer);
+                _columns.Add("Airday", DerpScrapper.BaseDB.SQLiteDBType.Text);
+                _columns.Add("Runtime", DerpScrapper.BaseDB.SQLiteDBType.Integer);
+                _columns.Add("Network", DerpScrapper.BaseDB.SQLiteDBType.Text);
+                _columns.Add("NameAlternatives", DerpScrapper.BaseDB.SQLiteDBType.Text);
+                _columns.Add("NameNonAlternatives", DerpScrapper.BaseDB.SQLiteDBType.Text);
 
             }
             this.columns = _columns;

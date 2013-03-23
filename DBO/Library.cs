@@ -5,7 +5,7 @@ namespace DerpScrapper.DBO
 {
     public class Library : DBObject
     {
-        public static Dictionary<string, System.Data.DbType> _columns = null;
+        public static Dictionary<string, DerpScrapper.BaseDB.SQLiteDBType> _columns = null;
 
         public new static string tableName
         {
@@ -57,10 +57,10 @@ namespace DerpScrapper.DBO
         {
             if (_columns == null)
             {
-                _columns = new Dictionary<string, System.Data.DbType>();
-                _columns.Add("Name", System.Data.DbType.String);
-                _columns.Add("PrimaryLanguage", System.Data.DbType.String);
-                _columns.Add("SecondaryLanguage", System.Data.DbType.String);
+                _columns = new Dictionary<string, DerpScrapper.BaseDB.SQLiteDBType>();
+                _columns.Add("Name", DerpScrapper.BaseDB.SQLiteDBType.Text);
+                _columns.Add("PrimaryLanguage", DerpScrapper.BaseDB.SQLiteDBType.Text);
+                _columns.Add("SecondaryLanguage", DerpScrapper.BaseDB.SQLiteDBType.Text);
             }
             this.columns = _columns;
         }
@@ -92,7 +92,7 @@ namespace DerpScrapper.DBO
 
             var command = BaseDB.connection.CreateCommand();
             command.CommandText = string.Format("SELECT {1} FROM {0} WHERE {1} = {2}", "Library", "Name", "@Name");
-            command.Parameters.AddWithValue("@Name", this["Name"]).DbType = this.columns["Name"];
+            command.Parameters.AddWithValue("@Name", this["Name"]).DbType = this.columns["Name"].type;
 
             var reader = command.ExecuteReader();
             return reader.HasRows;

@@ -11,6 +11,7 @@ using DerpScrapper.DownloadSite_Scrapers;
 using DerpScrapper.Downloader;
 using DerpScrapper.Scrapers;
 using System.IO;
+using DerpScrapper.Library;
 
 namespace DerpScrapper
 {
@@ -96,19 +97,21 @@ namespace DerpScrapper
                     info = new SerieInfo(serie);
                 }
 
-                var nyaaScraper = new DailyTVTorrents();
-                var downloads = nyaaScraper.GetDownloadsForEntireSerie(info);
+                LibraryTest.TestManagement(info);
 
-                foreach (var dl in downloads)
-                {
-                    UTorrent.AddTorrent(new Uri(dl.url));
-                }
+                //var nyaaScraper = new DailyTVTorrents();
+                //var downloads = nyaaScraper.GetDownloadsForEntireSerie(info);
 
-                return new DerpThing() { Name = query, List = downloads, idx = 1 };
+                //foreach (var dl in downloads)
+                //{
+                //    UTorrent.AddTorrent(new Uri(dl.url));
+                //}
+
+                return new DerpThing() { Name = query, List = new List<PossibleDownloadHit>(), idx = 1 };
             };
 
 
-            WorkThreadManager.Instance.AddNewTask(task1, "Person of Interest", true, CallbackForThreads);
+            WorkThreadManager.Instance.AddNewTask(task1, "Shinsekai Yori", true, CallbackForThreads);
         }
 
         class DerpThing

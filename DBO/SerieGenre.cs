@@ -4,7 +4,7 @@ namespace DerpScrapper.DBO
 {
     public class SerieGenre : DBObject
     {
-        public static Dictionary<string, System.Data.DbType> _columns = null;
+        public static Dictionary<string, DerpScrapper.BaseDB.SQLiteDBType> _columns = null;
 
         public new static string tableName
         {
@@ -20,9 +20,9 @@ namespace DerpScrapper.DBO
         {
             if (_columns == null)
             {
-                _columns = new Dictionary<string, System.Data.DbType>();
-                _columns.Add("SerieId", System.Data.DbType.Int32);
-                _columns.Add("GenreId", System.Data.DbType.Int32);
+                _columns = new Dictionary<string, DerpScrapper.BaseDB.SQLiteDBType>();
+                _columns.Add("SerieId", DerpScrapper.BaseDB.SQLiteDBType.Integer);
+                _columns.Add("GenreId", DerpScrapper.BaseDB.SQLiteDBType.Integer);
 
             }
             this.columns = _columns;

@@ -34,11 +34,50 @@ namespace DerpScrapper.DownloadSite_Scrapers
                 return null;
             }
 
+            List<PossibleDownloadHit> hits = new List<PossibleDownloadHit>();
+
             foreach (XmlNode node in rss.GetElementsByTagName("item"))
             {
+                string title = node.ChildNodes[0].InnerText;
+                int lastSpace = title.LastIndexOf(' ');
+                string qualityPart = title.Substring(lastSpace);
+                title = title.Substring(0, lastSpace).Trim();
+
+                lastSpace = title.LastIndexOf(' ');
+                string episode = title.Substring(lastSpace).Trim();
+
+                var parts = episode.Split(new char[] { 'S', 'E' }, StringSplitOptions.RemoveEmptyEntries);
+
+                int seasonNr = int.Parse(parts[0]); 
+                int episodeNr = int.Parse(parts[1]);
+
+                SeasonEpisode ep = new SeasonEpisode(seasonNr, episodeNr);
+                if (hits.DoesContain(ep))
+                {
+                    Console.WriteLine("Skipped hit " + node.ChildNodes[0].InnerText + " - already have one");
+                    continue;
+                }
+
+                string quality = onlyAlphaNumeric.Replace(qualityPart, "").Trim();
+                PossibleDownloadHit dlHit = new PossibleDownloadHit();
+                dlHit.episodes = new List<SeasonEpisode>();
+                dlHit.episodes.Add(ep);
+                dlHit.name = node.ChildNodes[0].InnerText;
+                dlHit.url = node.ChildNodes[4].Attributes[0].Value;
+                switch (quality)
+                {
+                    case "1080":
+                        dlHit.qualityInfo.resolution = QualityInformation.Resolution.HD1080;
+                        break;
+                    case "720":
+                        dlHit.qualityInfo.resolution = QualityInformation.Resolution.HD720;
+                        break;
+                }
+                
+                hits.Add(dlHit);
             }
 
-            return null;
+            return hits;
         }
 
         public List<PossibleDownloadHit> GetDownloads_Api(SerieInfo forSerie, string tvTorrentsName)
@@ -58,25 +97,42 @@ namespace DerpScrapper.DownloadSite_Scrapers
 
                 foreach (var hit in res.Episodes)
                 {
+                    var dlHit = new PossibleDownloadHit();
+                    dlHit.name = forSerie.serie.Name + " " + hit.num;
+
                     string url = "";
                     if (hit.torrentFile1080 != null && hit.torrentFile1080 != "")
+                    {
+                        dlHit.qualityInfo.resolution = QualityInformation.Resolution.HD1080;
                         url = hit.torrentFile1080;
+                    }
                     else if (hit.torrentFile720 != null && hit.torrentFile720 != "")
+                    {
+                        dlHit.qualityInfo.resolution = QualityInformation.Resolution.HD720;
                         url = hit.torrentFile720;
+                    }
                     else
+                    {
+                        dlHit.qualityInfo.resolution = QualityInformation.Resolution.Unset;
                         url = hit.torrentFileHD;
+                    }
 
                     var parts = hit.num.Split(new char[] { 'S', 'E' }, StringSplitOptions.RemoveEmptyEntries);
                     int season = int.Parse(parts[0]);
                     int ep = int.Parse(parts[1]);
 
                     SeasonEpisode sEp = new SeasonEpisode(season, ep);
-                    totalHits.Add(new PossibleDownloadHit()
+                    if (totalHits.DoesContain(sEp))
                     {
-                        name = forSerie.serie.Name + " " + hit.num,
-                        url = url,
-                        episodes = new List<SeasonEpisode>(new[] { sEp })
-                    });
+
+
+                        Console.WriteLine("Skipping hit " + hit.title + " - already have it.");
+                        continue;
+                    }
+
+                    dlHit.url = url;
+                    dlHit.episodes = new List<SeasonEpisode>(new[] { sEp });
+                    totalHits.Add(dlHit);
                 }
 
                 if (res.CurrentPage == res.Pages)

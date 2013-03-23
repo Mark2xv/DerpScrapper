@@ -6,7 +6,7 @@ namespace DerpScrapper
 {
     public partial class DBObject : Dictionary<string, object>
     {
-        public Dictionary<string, System.Data.DbType> columns;
+        public Dictionary<string, DerpScrapper.BaseDB.SQLiteDBType> columns;
         public int rowId = -1;
         public string table;
         public static string tableName = "";
@@ -85,7 +85,7 @@ namespace DerpScrapper
             // Any keys that have been set
             foreach (string key in this.Keys)
             {
-                command.Parameters.AddWithValue("@" + key, this[key]).DbType = this.columns[key];
+                command.Parameters.AddWithValue("@" + key, this[key]).DbType = this.columns[key].type;
             }
 
             object retVal = command.ExecuteScalar();
@@ -112,7 +112,7 @@ namespace DerpScrapper
                         object colValue = reader.GetValue(colIdx);
                         if (!(colValue is System.DBNull))
                         {
-                            System.Data.DbType type = this.columns[key];
+                            System.Data.DbType type = this.columns[key].type;
 
                             switch (type)
                             {
@@ -162,7 +162,7 @@ namespace DerpScrapper
             // Any keys that have been set
             foreach (string key in this.Keys)
             {
-                command.Parameters.AddWithValue("@" + key, this[key]).DbType = this.columns[key];
+                command.Parameters.AddWithValue("@" + key, this[key]).DbType = this.columns[key].type;
             }
 
             return command.ExecuteNonQuery() == 1;
