@@ -41,22 +41,25 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="HtmlAgilityPack">
-      <HintPath>.\HtmlAgilityPack.dll</HintPath>
+      <HintPath>.\Resources\Libs\HtmlAgilityPack.dll</HintPath>
     </Reference>
-    <Reference Include="Newtonsoft.Json, Version=4.5.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL" />
+    <Reference Include="Newtonsoft.Json, Version=4.5.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>Resources\Libs\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="Ookii.Dialogs, Version=1.0.0.0, Culture=neutral, PublicKeyToken=0c15020868fd6249, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>.\Ookii.Dialogs.dll</HintPath>
+      <HintPath>.\Resources\Libs\Ookii.Dialogs.dll</HintPath>
     </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data.SQLite">
-      <HintPath>.\System.Data.SQLite.dll</HintPath>
+      <HintPath>.\Resources\Libs\System.Data.SQLite.dll</HintPath>
     </Reference>
     <Reference Include="System.Data.SQLite.Linq">
-      <HintPath>.\System.Data.SQLite.Linq.dll</HintPath>
+      <HintPath>.\Resources\Libs\System.Data.SQLite.Linq.dll</HintPath>
     </Reference>
     <Reference Include="System.Drawing" />
     <Reference Include="System.Net" />
@@ -67,7 +70,7 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
     <Reference Include="UTorrentAPI">
-      <HintPath>.\UTorrentAPI.dll</HintPath>
+      <HintPath>.\Resources\Libs\UTorrentAPI.dll</HintPath>
     </Reference>
     <Reference Include="WindowsBase" />
   </ItemGroup>
@@ -171,10 +174,14 @@
     <None Include="Resources\Images\edit.png" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Newtonsoft.Json.dll" />
-    <Content Include="Ookii.Dialogs.dll" />
+    <Content Include="Resources\Libs\HtmlAgilityPack.dll" />
+    <Content Include="Resources\Libs\Newtonsoft.Json.dll" />
+    <Content Include="Resources\Libs\Ookii.Dialogs.dll" />
     <Content Include="Resources\Images\spinner.gif" />
     <Content Include="Resources\Images\thumb_asdf_0506.jpg" />
+    <Content Include="Resources\Libs\System.Data.SQLite.dll" />
+    <Content Include="Resources\Libs\System.Data.SQLite.Linq.dll" />
+    <Content Include="Resources\Libs\UTorrentAPI.dll" />
     <None Include="Resources\Images\attach.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
