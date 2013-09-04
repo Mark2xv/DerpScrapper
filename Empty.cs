@@ -11,7 +11,6 @@ using DerpScrapper.DownloadSite_Scrapers;
 using DerpScrapper.Downloader;
 using DerpScrapper.Scrapers;
 using System.IO;
-using DerpScrapper.Library;
 
 namespace DerpScrapper
 {
@@ -60,7 +59,7 @@ namespace DerpScrapper
 
         public void StartWorkStuff()
         {
-            Func<object, object> task1 = (object a) =>
+            Func<ProgressReporter, object, object> task1 = (ProgressReporter report, object a) =>
             {
                 string query = (string)a;
 
@@ -97,7 +96,7 @@ namespace DerpScrapper
                     info = new SerieInfo(serie);
                 }
 
-                LibraryTest.TestManagement(info);
+                //LibraryTest.TestManagement(info);
 
                 //var nyaaScraper = new DailyTVTorrents();
                 //var downloads = nyaaScraper.GetDownloadsForEntireSerie(info);
@@ -107,7 +106,11 @@ namespace DerpScrapper
                 //    UTorrent.AddTorrent(new Uri(dl.url));
                 //}
 
-                return new DerpThing() { Name = query, List = new List<PossibleDownloadHit>(), idx = 1 };
+                return new DerpThing() { 
+                    Name = query,
+                    List = new List<PossibleDownloadHit>(),
+                    idx = 1
+                };
             };
 
 

@@ -45,10 +45,13 @@ namespace DerpScrapper
             }
         }
 
-        public WorkThreadControl AddNewTask(Func<object, object> task, object argument = null, bool usesDBO = false, Action<object> callback = null)
+        public WorkThreadControl AddNewTask(Func<ProgressReporter, object, object> task, object argument = null, bool usesDBO = false, Action<object> callback = null, Action<object> progressCallback = null)
         {
             WorkThread t = new WorkThread(++currentIndex, task, argument);
+
             t.callback = callback;
+            t.progress = progressCallback;
+
             t.SetDboPointer = (SQLiteConnection) BaseDB.connection.Clone();
 
             // Loop around if for some reason this application would be running for... a few million years?
@@ -71,7 +74,7 @@ namespace DerpScrapper
                 t.Start();
                 currentRunningTasks++;
             }
-
+            
             return new WorkThreadControl(t);
         }
 
@@ -91,9 +94,12 @@ namespace DerpScrapper
             }
         }
 
-        void t_ReportProgress(WorkThread sender, int pct, object userData)
+        void t_ReportProgress(WorkThread sender, object userdata)
         {
-            Console.WriteLine("A func did report progress");
+            if (sender.progress != null)
+            {
+                sender.progress(userdata);
+            }
         }
     }
 }

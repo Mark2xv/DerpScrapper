@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
@@ -10,7 +10,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>DerpScrapper</RootNamespace>
     <AssemblyName>DerpScrapper</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
     <TargetFrameworkProfile>
     </TargetFrameworkProfile>
     <FileAlignment>512</FileAlignment>
@@ -24,6 +24,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
     <PlatformTarget>x86</PlatformTarget>
@@ -33,6 +34,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup>
     <StartupObject>DerpScrapper.Program</StartupObject>
@@ -42,6 +44,12 @@
       <HintPath>.\HtmlAgilityPack.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=4.5.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL" />
+    <Reference Include="Ookii.Dialogs, Version=1.0.0.0, Culture=neutral, PublicKeyToken=0c15020868fd6249, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>.\Ookii.Dialogs.dll</HintPath>
+    </Reference>
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data.SQLite">
@@ -53,6 +61,7 @@
     <Reference Include="System.Drawing" />
     <Reference Include="System.Net" />
     <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xaml" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
@@ -60,13 +69,36 @@
     <Reference Include="UTorrentAPI">
       <HintPath>.\UTorrentAPI.dll</HintPath>
     </Reference>
+    <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AddNewLibrary.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="AddNewLibrary.Designer.cs">
+      <DependentUpon>AddNewLibrary.cs</DependentUpon>
+    </Compile>
     <Compile Include="APIs\DailyTvTorrentsAPI\DailyTvTorrents.cs" />
     <Compile Include="APIs\DailyTvTorrentsAPI\Episode.cs" />
     <Compile Include="APIs\DailyTvTorrentsAPI\Show.cs" />
     <Compile Include="APIs\DailyTvTorrentsAPI\Torrent.cs" />
     <Compile Include="BaseDB.cs" />
+    <Compile Include="LibraryTab.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="MainWindow.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="MainWindow.Designer.cs">
+      <DependentUpon>MainWindow.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Positioning.cs" />
+    <Compile Include="Resources\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="WPFWindow.cs" />
     <Compile Include="DBOject.cs" />
     <Compile Include="DBO\Episode.cs" />
     <Compile Include="DBO\Genre.cs" />
@@ -89,7 +121,6 @@
       <DependentUpon>Empty.cs</DependentUpon>
     </Compile>
     <Compile Include="Extensions.cs" />
-    <Compile Include="Library\LibraryTest.cs" />
     <Compile Include="Log.cs" />
     <Compile Include="Scraper\IDownloadSite.cs" />
     <Compile Include="Program.cs" />
@@ -97,79 +128,54 @@
     <Compile Include="Scraper\IScraper.cs" />
     <Compile Include="ResourceSite_Scrapers\TVDBScraper.cs" />
     <Compile Include="Scraper\ScraperUtility.cs" />
-    <Compile Include="UI\Dialogs\BaseDialog.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="UI\Dialogs\BaseDialog.Designer.cs">
-      <DependentUpon>BaseDialog.cs</DependentUpon>
-    </Compile>
-    <Compile Include="UI\Dialogs\Panels\Library.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="UI\Dialogs\Panels\Library.Designer.cs">
-      <DependentUpon>Library.cs</DependentUpon>
-    </Compile>
-    <Compile Include="UI\Main.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="UI\Main.Designer.cs">
-      <DependentUpon>Main.cs</DependentUpon>
-    </Compile>
-    <Compile Include="UI\Resources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
-    <Compile Include="UI\Tabpanels\Library.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="UI\Tabpanels\Library.Designer.cs">
-      <DependentUpon>Library.cs</DependentUpon>
-    </Compile>
     <Compile Include="WorkThread.cs" />
     <Compile Include="WorkThreadManager.cs" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="AddNewLibrary.resx">
+      <DependentUpon>AddNewLibrary.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Empty.resx">
       <DependentUpon>Empty.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="UI\Dialogs\BaseDialog.resx">
-      <DependentUpon>BaseDialog.cs</DependentUpon>
+    <EmbeddedResource Include="LibraryTab.resx">
+      <DependentUpon>LibraryTab.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="UI\Dialogs\Panels\Library.resx">
-      <DependentUpon>Library.cs</DependentUpon>
+    <EmbeddedResource Include="MainWindow.resx">
+      <DependentUpon>MainWindow.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="UI\Main.resx">
-      <DependentUpon>Main.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="UI\Resources.resx">
+    <EmbeddedResource Include="Resources\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-    <EmbeddedResource Include="UI\Tabpanels\Library.resx">
-      <DependentUpon>Library.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\accept.png" />
+    <None Include="Resources\Images\accept.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\add.png" />
+    <None Include="Resources\Images\add.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\delete.png" />
+    <None Include="Resources\Images\delete.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\cancel.png" />
+    <None Include="Resources\Images\cancel.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\save.png" />
+    <None Include="Resources\Images\save.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\edit.png" />
+    <None Include="Resources\Images\edit.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Newtonsoft.Json.dll" />
+    <Content Include="Ookii.Dialogs.dll" />
+    <Content Include="Resources\Images\spinner.gif" />
+    <Content Include="Resources\Images\thumb_asdf_0506.jpg" />
+    <None Include="Resources\Images\attach.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

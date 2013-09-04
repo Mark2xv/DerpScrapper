@@ -88,14 +88,19 @@ namespace DerpScrapper.DBO
         public bool LibraryNameExists()
         {
             if (this["Name"].ToString() == string.Empty)
-                return false;
+                throw new Exception("Empty name");
 
             var command = BaseDB.connection.CreateCommand();
             command.CommandText = string.Format("SELECT {1} FROM {0} WHERE {1} = {2}", "Library", "Name", "@Name");
             command.Parameters.AddWithValue("@Name", this["Name"]).DbType = this.columns["Name"].type;
 
             var reader = command.ExecuteReader();
-            return reader.HasRows;
+            bool hasRows = reader.HasRows;
+
+            command.Dispose();
+            reader.Dispose();
+
+            return hasRows;
         }
 
         public List<Serie> GetSeries()
@@ -105,7 +110,7 @@ namespace DerpScrapper.DBO
                 return list;
 
             var command = BaseDB.connection.CreateCommand();
-            command.CommandText = string.Format("SELECT ROWID FROM {0} WHERE ", @"Serie");
+            command.CommandText = "SELECT ROWID FROM Serie WHERE LibraryId = " + this.Id;
             var reader = command.ExecuteReader();
 
             if (reader.HasRows)

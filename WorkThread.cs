@@ -4,11 +4,24 @@ using System.Data.SQLite;
 
 namespace DerpScrapper
 {
+    class ProgressReporter
+    {
+        public ProgressReporter(BackgroundWorker bgWorker)
+        {
+            this._bgWorker = bgWorker;
+        }
+
+        private BackgroundWorker _bgWorker;
+        public void ReportProgress(object data)
+        {
+            _bgWorker.ReportProgress(0, data);
+        }
+    }
     class WorkThread
     {
         private BackgroundWorker workingThread;
 
-        public delegate void ReportProgressEventHandler(WorkThread sender, int pct, object userData);
+        public delegate void ReportProgressEventHandler(WorkThread sender, object userData);
         public event ReportProgressEventHandler ReportProgress;
 
         public delegate void WorkDoneEventHandler(WorkThread sender, object result, bool cancelled, Exception exception);
@@ -16,16 +29,17 @@ namespace DerpScrapper
 
         public bool usesDBO = false;
 
-        Func<object, object> task;
+        Func<ProgressReporter, object, object> task;
         object argument;
 
         public Action<object> callback;
+        public Action<object> progress;
 
         public long identifier;
 
         public SQLiteConnection SetDboPointer;
 
-        public WorkThread(long identifier, Func<object, object> func, object argument = null, Action<object> callback = null)
+        public WorkThread(long identifier, Func<ProgressReporter, object, object> func, object argument = null)
         {
             workingThread = new BackgroundWorker();
             workingThread.WorkerSupportsCancellation = true;
@@ -51,7 +65,7 @@ namespace DerpScrapper
         void workingThread_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
             if (this.ReportProgress != null)
-                this.ReportProgress(this, e.ProgressPercentage, e.UserState); // TODO fix
+                this.ReportProgress(this, e.UserState); // TODO fix
         }
 
         void workingThread_DoWork(object sender, DoWorkEventArgs e)
@@ -63,7 +77,8 @@ namespace DerpScrapper
                     // Overwrite the BaseDB.connection. It's a [ThreadStatic] variable, so nothing on the mainthread (or other threads, for that matter) will be changed
                     BaseDB.connection = this.SetDboPointer;
                 }
-                e.Result = task(argument);
+                
+                e.Result = task(new ProgressReporter(this.workingThread), argument);
             }
             else
             {

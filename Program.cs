@@ -7,7 +7,7 @@ namespace DerpScrapper
 {
     class Program
     {
-        public static bool ForceNewDB = false;
+        public static bool ForceNewDB = true;
         public static string RootDirectory = @"C:\DerpScraper\";
 
         [STAThread()]
@@ -16,11 +16,16 @@ namespace DerpScrapper
             Program.Setup();
 
             Application.EnableVisualStyles();
-            Application.Run(new Empty());
+            Application.Run(new MainWindow());
         }
 
         static void Setup()
         {
+            if (!Directory.Exists(RootDirectory))
+            {
+                Directory.CreateDirectory(RootDirectory);
+            }
+
             if (!BaseDB.CreateDB(ForceNewDB))
             {
                 Console.ReadKey();
