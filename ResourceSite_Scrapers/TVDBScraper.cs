@@ -6,11 +6,201 @@ using HtmlAgilityPack;
 using DerpScrapper.Scraper;
 using DerpScrapper.DBO;
 using System.Net;
+using System.Threading.Tasks;
+using System.Xml;
+using System.Net.Http;
 
 namespace DerpScrapper.Scrapers
 {
+    class SerieInfoSearchResult
+    {
+        public string QueryName;
+        public bool FailedHit;
+        public SerieInfo SerieInfo;
+        public bool UncertainHit;
+        public List<UncertainSerieHit> PossibleSerieHits;
+
+        private SerieInfoSearchResult(string query)
+        {
+            this.QueryName = query;
+        }
+
+        public SerieInfoSearchResult(string query, bool failed)
+            : this(query)
+        {
+            this.FailedHit = failed;
+            this.UncertainHit = false;
+            this.PossibleSerieHits = null;
+            this.SerieInfo = null;
+        }
+
+        public SerieInfoSearchResult(string query, List<UncertainSerieHit> hits)
+            : this(query)
+        {
+            this.FailedHit = false;
+            this.UncertainHit = true;
+            this.PossibleSerieHits = hits;
+            this.SerieInfo = null;
+        }
+
+        public SerieInfoSearchResult(string query, SerieInfo hit)
+            : this(query)
+        {
+            this.FailedHit = false;
+            this.UncertainHit = false;
+            this.PossibleSerieHits = null;
+            this.SerieInfo = hit;
+        }
+    }
+
+    public class UncertainSerieHit
+    {
+        public string Name;
+        public TVDBLanguage Language;
+        public Uri Page;
+        public Uri Image;
+    }
+
+    public struct TVDBLanguage
+    {
+        public string FriendlyName;
+        public string Abbreviation;
+        public int Id;
+
+        public override string ToString()
+        {
+            return FriendlyName;
+        }
+    }
+
     class TVDBScraper : IScraper
     {
+        private const string BaseURL = "http://thetvdb.com/api";
+        private const string AccountIdentifier = "E8587E005FDDDE43";
+
+        private const string BaseViewURL = "http://thetvdb.com/?tab=series&id={0}&lid={1}";
+        private const string ImageBaseURL = "http://thetvdb.com/banners";
+
+        private static TVDBLanguage[] _languages = { 
+#region TVDB Language Codes
+            new TVDBLanguage() {
+	            FriendlyName = "Dansk",
+	            Abbreviation = "da",
+	            Id = 10
+            },
+            new TVDBLanguage() {
+	            FriendlyName = "Suomeksi",
+	            Abbreviation = "fi",
+	            Id = 11
+            },
+            new TVDBLanguage() {
+	            FriendlyName = "Nederlands",
+	            Abbreviation = "nl",
+	            Id = 13
+            },
+            new TVDBLanguage() {
+	            FriendlyName = "Deutsch",
+	            Abbreviation = "de",
+	            Id = 14
+            },
+            new TVDBLanguage() {
+	            FriendlyName = "Italiano",
+	            Abbreviation = "it",
+	            Id = 15
+            },
+            new TVDBLanguage() {
+	            FriendlyName = "Español",
+	            Abbreviation = "es",
+	            Id = 16
+            },
+            new TVDBLanguage() {
+	            FriendlyName = "Français",
+	            Abbreviation = "fr",
+	            Id = 17
+            },
+            new TVDBLanguage() {
+	            FriendlyName = "Polski",
+	            Abbreviation = "pl",
+	            Id = 18
+            },
+            new TVDBLanguage() {
+	            FriendlyName = "Magyar",
+	            Abbreviation = "hu",
+	            Id = 19
+            },
+            new TVDBLanguage() {
+	            FriendlyName = "Ελληνικά",
+	            Abbreviation = "el",
+	            Id = 20
+            },
+            new TVDBLanguage() {
+	            FriendlyName = "Türkçe",
+	            Abbreviation = "tr",
+	            Id = 21
+            },
+            new TVDBLanguage() {
+	            FriendlyName = "русский язык",
+	            Abbreviation = "ru",
+	            Id = 22
+            },
+            new TVDBLanguage() {
+	            FriendlyName = "עברית",
+	            Abbreviation = "he",
+	            Id = 24
+            },
+            new TVDBLanguage() {
+	            FriendlyName = "日本語",
+	            Abbreviation = "ja",
+	            Id = 25
+            },
+            new TVDBLanguage() {
+	            FriendlyName = "Português",
+	            Abbreviation = "pt",
+	            Id = 26
+            },
+            new TVDBLanguage() {
+	            FriendlyName = "中文",
+	            Abbreviation = "zh",
+	            Id = 27
+            },
+            new TVDBLanguage() {
+	            FriendlyName = "čeština",
+	            Abbreviation = "cs",
+	            Id = 28
+            },
+            new TVDBLanguage() {
+	            FriendlyName = "Slovenski",
+	            Abbreviation = "sl",
+	            Id = 30
+            },
+            new TVDBLanguage() {
+	            FriendlyName = "Hrvatski",
+	            Abbreviation = "hr",
+	            Id = 31
+            },
+            new TVDBLanguage() {
+	            FriendlyName = "한국어",
+	            Abbreviation = "ko",
+	            Id = 32
+            },
+            new TVDBLanguage() {
+	            FriendlyName = "English",
+	            Abbreviation = "en",
+	            Id = 7
+            },
+            new TVDBLanguage() {
+	            FriendlyName = "Svenska",
+	            Abbreviation = "sv",
+	            Id = 8
+            },
+            new TVDBLanguage() {
+	            FriendlyName = "Norsk",
+	            Abbreviation = "no",
+	            Id = 9
+            }
+#endregion
+        };
+
         public ResourceSite GetResourceSite()
         {
             ResourceSite site = new ResourceSite(1);
@@ -18,238 +208,77 @@ namespace DerpScrapper.Scrapers
             return site;
         }
 
-        public SerieInfo FindAllInformationForSerie(string seriesQuery)
+        private static TVDBLanguage GetLanguage(string abbreviation)
         {
-            var site = this.GetResourceSite();
+            return _languages.Where(l => l.Abbreviation == abbreviation).FirstOrDefault();
+        }
 
-            SerieInfo serieInfo = new SerieInfo();
-            serieInfo.resource.ResourceSiteId = site.Id;
+        private static TVDBLanguage GetLanguage(int id)
+        {
+            return _languages.Where(l => l.Id == id).FirstOrDefault();
+        }
 
-            Console.WriteLine("Searching for information on series \"" + seriesQuery + "\"");
-            HtmlAgilityPack.HtmlDocument searchDocument = ScraperUtility.HTMLDocumentOfContentFromURL("http://thetvdb.com/?string=" + seriesQuery.Replace(" ", "+") + "&searchseriesid=&tab=listseries&function=Search");
-            List<PossibleSearchHit> searchHits = new List<PossibleSearchHit>();
-            var searchTableHits = searchDocument.GetElementbyId("listtable");
-            bool firstNode = true;
+        public async Task<SerieInfoSearchResult> FindSerie(string seriesQuery)
+        {
+            string contents = await ScraperUtility.GetContentOfUrl(BaseURL + "/GetSeries.php?seriesname=" + seriesQuery);
+            var document = new XmlDocument();
+            document.LoadXml(contents);
 
-            foreach (HtmlNode node in searchTableHits.Descendants("tr"))
+            var seriesNodes = document.SelectNodes("//Series");
+            if (seriesNodes.Count == 0)
             {
-                if (firstNode)
-                {
-                    firstNode = false;
-                    continue;
-                }
-
-                int tdNumber = 0;
-                PossibleSearchHit searchHit = new PossibleSearchHit();
-                foreach (HtmlNode subNode in node.Descendants("td"))
-                {
-                    if (tdNumber == 0)
-                    {
-                        // link stuff
-                        
-                        searchHit.seriesName = WebUtility.HtmlDecode(subNode.FirstChild.InnerText);
-
-                        var parts = subNode.FirstChild.Attributes["href"].Value.Split(new[] { "&" }, StringSplitOptions.RemoveEmptyEntries);
-                        searchHit.languageId = int.Parse(ScraperUtility.PartAfterEquals(parts[2]));
-
-                    }
-                    else if (tdNumber == 1)
-                    {
-                        searchHit.languageName = subNode.InnerText;
-                    }
-                    else if (tdNumber == 2)
-                    {
-                        searchHit.seriesId = int.Parse(subNode.InnerText);
-                    }
-                    tdNumber++;
-                }
-                searchHits.Add(searchHit);
+                return new SerieInfoSearchResult(seriesQuery, true);
             }
-
-            PossibleSearchHit preferredHit = null;
-            PossibleSearchHit englishHit = FindEnglish(searchHits);
-
-            List<string> goodAlts = new List<string>();
-            List<string> badAlts = new List<string>();
-
-            var alts = searchHits.GroupBy(p => p.seriesId);
-            foreach (var group in alts)
+            else if (seriesNodes.Count == 1)
             {
-                if (group.Key == englishHit.seriesId)
-                {
-                    foreach (var goodAltNameHit in group)
-                    {
-                        string sGoodName = goodAltNameHit.seriesName.ToLower();
-                        if (!goodAlts.Contains(sGoodName))
-                            goodAlts.Add(sGoodName);
-                    }
-                }
-                else
-                {
-                    foreach (var badAltNameHit in group)
-                    {
-                        string sBadName = badAltNameHit.seriesName.ToLower();
-                        if(!badAlts.Contains(sBadName))
-                            badAlts.Add(sBadName);
-                    }
-                }
-            }
-            
+                // Likely success
+                var serieNode = seriesNodes[0];
+                var serieInfo = new SerieInfo();
+                serieInfo.serie.Name = serieNode.SelectSingleNode("/SeriesName").InnerText;
 
-            if (englishHit == null)
-            {
-                // find out which other hit is preffered
 
+                return new SerieInfoSearchResult(seriesQuery, serieInfo);
             }
             else
             {
-                preferredHit = englishHit;
-            }
-
-            if (preferredHit == null)
-            {
-                // shit.
-            }
-
-            serieInfo.serie.Name = preferredHit.seriesName;
-            serieInfo.metadata.NameAlternatives = goodAlts.Implode("|");
-            serieInfo.metadata.NameNonAlternatives = badAlts.Implode("|");
-
-            Console.WriteLine("Getting metadata of series id " + preferredHit.seriesId.ToString() + " (Name = " + preferredHit.seriesName + ") ...");
-            HtmlDocument metaDataDoc = ScraperUtility.HTMLDocumentOfContentFromURL("http://thetvdb.com/?tab=series&id=" + preferredHit.seriesId + "&lid=" + preferredHit.languageId);
-
-            serieInfo.resource.ResourceSiteId = preferredHit.seriesId;
-            serieInfo.resource.ResourceSiteUrl = "http://thetvdb.com/?tab=series&id=" + preferredHit.seriesId + "&lid=" + preferredHit.languageId;
-
-            var contentNode = metaDataDoc.DocumentNode.Descendants("div").Where(p => p.Id == "content").FirstOrDefault();
-            string seriesSynopsis = contentNode.LastChild.InnerText.Trim();
-
-            var wtfAmIDoing = NewMethod(metaDataDoc);
-            var noIdsAnywhere = wtfAmIDoing.NextSibling.NextSibling;
-
-            foreach (var what in noIdsAnywhere.FirstChild.NextSibling.FirstChild.Descendants("tr"))
-            {
-                var tds = what.Descendants("td");
-                var td1 = tds.ElementAt(0).InnerText.Trim().Trim(':');
-                var td2 = tds.ElementAt(1).InnerText.Trim();
-
-                switch (td1)
+                var uncertainHits = new List<UncertainSerieHit>();
+                foreach (XmlNode serieNode in seriesNodes)
                 {
-                    case "First Aired":
-                        DateTime dt = DateTime.Parse(td2);
-                        serieInfo.metadata.FirstAired = dt.ToUnixTimestamp();
-                        break;
-                    case "Air Day":
-                        serieInfo.metadata.Airday = td2;
-                        break;
-                    case "Air Time":
-                        //
-                        break;
-                    case "Runtime":
-                        serieInfo.metadata.Runtime = (int)TimeSpan.Parse(td2.Split(' ')[0]).TotalSeconds;
-                        break;
-                    case "Network":
-                        serieInfo.metadata.Network = td2;
-                        break;
-                    case "Genre":
-                        string[] genres = tds.ElementAt(1).InnerHtml.Split(new string[] { "<br>" }, StringSplitOptions.RemoveEmptyEntries);
-                        foreach (string genre in genres)
-                        {
-                            Genre gen = Genre.GetGenre(genre);
-                            SerieGenre serieGenre = new SerieGenre();
-                            serieGenre.GenreId = gen.Id;
-                            serieInfo.genres.Add(serieGenre);
-                        }
-                        break;
+                    var language = TVDBScraper.GetLanguage(serieNode["language"].InnerText);
+                    string seriesId = serieNode["seriesid"].InnerText;
+                    uncertainHits.Add(new UncertainSerieHit()
+                    {
+                        Name = serieNode["SeriesName"].InnerText,
+                        Language = language,
+                        Image = await GetPosterImageUrlForSeriesId(seriesId),
+                        Page = new Uri(string.Format(BaseViewURL, seriesId, language.Id))
+                    });
                 }
+
+                return new SerieInfoSearchResult(seriesQuery, uncertainHits);
             }
-            string[] lines = noIdsAnywhere.InnerText.Split(new char[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        }
 
-            Console.WriteLine("Getting contents of series id " + preferredHit.seriesId.ToString() + " (Name = " + preferredHit.seriesName + ") ...");
-            HtmlDocument episodeListDoc = ScraperUtility.HTMLDocumentOfContentFromURL("http://thetvdb.com/?tab=seasonall&id=" + preferredHit.seriesId + "&lid=" + preferredHit.languageId);
+        private async Task<Uri> GetPosterImageUrlForSeriesId(string seriesId)
+        {
+            string baseFormat = ImageBaseURL + "/posters/" + seriesId + "-1.jpg";
 
-            List<Episode> episodeList = new List<Episode>();
-            var table = episodeListDoc.GetElementbyId("listtable");
-            foreach (HtmlNode node in table.Descendants("tr"))
+            HttpClient httpClient = new HttpClient();
+            Uri requestUri = new Uri(baseFormat);
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Head, requestUri);
+
+            HttpResponseMessage response = await httpClient.SendAsync(request);
+
+            if (response.IsSuccessStatusCode)
             {
-                bool wasHead = false;
-                Episode ep = new Episode();
-                int propNr = 0;
-                foreach (HtmlNode subNode in node.Descendants("td"))
-                {
-                    if (subNode.HasAttributes && subNode.Attributes["class"].Value == "head")
-                    {
-                        wasHead = true;
-                        break;
-                    }
-
-                    if (propNr == 0)
-                    {
-                        string[] parts;
-                        // get contents of <a> tag (innertext)
-                        if (subNode.FirstChild.InnerText != "Special")
-                        {
-                            parts = subNode.FirstChild.InnerText.Split(new[] { " x " }, StringSplitOptions.RemoveEmptyEntries);
-                            ep.SeasonNumber = int.Parse(parts[0]);
-                            ep.EpisodeNumber = int.Parse(parts[1]);
-                        }
-                        else
-                        {
-                            ep.isSpecial = true;
-                            ep.EpisodeNumber = -1;
-                            ep.SeasonNumber = -1;
-                        }
-
-                        string href = subNode.FirstChild.Attributes["href"].Value;
-                        parts = href.Split(new[] { "&" }, StringSplitOptions.RemoveEmptyEntries);
-                        ep.SerieId = int.Parse(ScraperUtility.PartAfterEquals(parts[1]));
-                        ep.SeasonId = int.Parse(ScraperUtility.PartAfterEquals(parts[2]));
-                        ep.EpisodeId = int.Parse(ScraperUtility.PartAfterEquals(parts[3]));
-                    }
-                    else if (propNr == 1)
-                    {
-                        ep.EpisodeName = subNode.FirstChild.InnerText;
-                    }
-                    else if (propNr == 2)
-                    {
-                        ep.AirDate = subNode.InnerText != "" ? DateTime.Parse(subNode.InnerText).ToUnixTimestamp() : 0;
-                    }
-                    else if (propNr == 3)
-                    {
-                        ep.hasImage = (subNode.HasChildNodes && subNode.FirstChild.Name == "img" && subNode.FirstChild.Attributes["src"].Value.Contains("checkmark"));
-                    }
-                    else
-                    {
-                        // wat
-                    }
-
-
-                    propNr++;
-                }
-                if (wasHead)
-                    continue;
-
-                episodeList.Add(ep);
+                return requestUri;
             }
+            return null;
+        }
 
-            for (int i = 0; i < episodeList.Count; i++)
-            {
-                Episode ep = episodeList.ElementAt(i);
-                string url = "http://thetvdb.com/?tab=episode&seriesid=" + episodeList[i].SerieId + "&seasonid=" + episodeList[i].SeasonId + "&id=" + episodeList[i].EpisodeId + "&lid=" + preferredHit.languageId;
-
-                Console.WriteLine("Getting contents for {0} - episode {1} : \"{2}\"", preferredHit.seriesName, episodeList[i].EpisodeNumber, episodeList[i].EpisodeName);
-                HtmlAgilityPack.HtmlDocument episodeDoc = ScraperUtility.HTMLDocumentOfContentFromURL(url);
-
-                string synopsys = (from textarea in episodeDoc.DocumentNode.Descendants("textarea")
-                                   where textarea.HasAttributes && textarea.Attributes["name"].Value == "Overview_7" // scary. What if the fieldname changes?
-                                   select textarea.InnerText).FirstOrDefault();
-
-                ep.Synopsis = synopsys;
-            }
-
-            serieInfo.episodes.AddRange(OrderByEpNr(episodeList));
-
-            return serieInfo;
+        public async Task<SerieInfoSearchResult> FindAllInformationForSerie(string seriesQuery)
+        {
+            return null;
         }
 
         private static IOrderedEnumerable<Episode> OrderByEpNr(List<Episode> episodeList)
@@ -269,6 +298,16 @@ namespace DerpScrapper.Scrapers
         {
             var wtfAmIDoing = metaDataDoc.DocumentNode.Descendants("h1").Where(p => p.InnerText == "Information").FirstOrDefault();
             return wtfAmIDoing;
+        }
+
+        SerieInfo IScraper.FindAllInformationForSerie(string serieName)
+        {
+            throw new NotImplementedException();
+        }
+
+        ResourceSite IScraper.GetResourceSite()
+        {
+            throw new NotImplementedException();
         }
     }
 }

@@ -23,7 +23,7 @@ namespace DerpScrapper
         }
 
         public string ImportPath { get; private set; }
-        public Library NewLibrary { get; private set; }
+        public DBO.Library NewLibrary { get; private set; }
 
         private bool haveTyped = false;
 
@@ -42,6 +42,9 @@ namespace DerpScrapper
 
 
             this.DialogResult = System.Windows.Forms.DialogResult.Cancel;
+
+            this.ImportPath = "D:\\Anime";
+            this.txtName.Text = "Anime";
         }
 
         void AddNewLibrary_KeyUp(object sender, KeyEventArgs e)
@@ -73,7 +76,7 @@ namespace DerpScrapper
                 return;
             }
 
-            Library newLib = new Library();
+            DBO.Library newLib = new DBO.Library();
             newLib.Name = this.txtName.Text;
             if (!newLib.LibraryNameExists())
             {

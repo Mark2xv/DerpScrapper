@@ -61,53 +61,53 @@ namespace DerpScrapper
         {
             Func<ProgressReporter, object, object> task1 = (ProgressReporter report, object a) =>
             {
-                string query = (string)a;
+                //string query = (string)a;
 
-                Serie serie = Serie.GetByName(query);
-                SerieInfo info;
-                if (serie == null)
-                {
-                    TVDBScraper tvDb = new TVDBScraper();
-                    info = tvDb.FindAllInformationForSerie(query);
-
-                    int serieId = info.serie.Insert();
-                    info.metadata.SerieId = serieId;
-                    info.resource.SerieId = serieId;
-
-                    info.metadata.Insert();
-                    info.resource.Insert();
-
-                    foreach (SerieGenre gen in info.genres)
-                    {
-                        gen.SerieId = serieId;
-                        gen.Insert();
-                    }
-
-                    foreach (Episode ep in info.episodes)
-                    {
-                        ep.SerieId = serieId;
-                        ep.Insert();
-                    }
-
-                    serie = info.serie;
-                }
-                else
-                {
-                    info = new SerieInfo(serie);
-                }
-
-                //LibraryTest.TestManagement(info);
-
-                //var nyaaScraper = new DailyTVTorrents();
-                //var downloads = nyaaScraper.GetDownloadsForEntireSerie(info);
-
-                //foreach (var dl in downloads)
+                //Serie serie = Serie.GetByName(query);
+                //SerieInfo info;
+                //if (serie == null)
                 //{
-                //    UTorrent.AddTorrent(new Uri(dl.url));
+                //    TVDBScraper tvDb = new TVDBScraper();
+                //    info = tvDb.FindAllInformationForSerie(query);
+
+                //    int serieId = info.serie.Insert();
+                //    info.metadata.SerieId = serieId;
+                //    info.resource.SerieId = serieId;
+
+                //    info.metadata.Insert();
+                //    info.resource.Insert();
+
+                //    foreach (SerieGenre gen in info.genres)
+                //    {
+                //        gen.SerieId = serieId;
+                //        gen.Insert();
+                //    }
+
+                //    foreach (Episode ep in info.episodes)
+                //    {
+                //        ep.SerieId = serieId;
+                //        ep.Insert();
+                //    }
+
+                //    serie = info.serie;
+                //}
+                //else
+                //{
+                //    info = new SerieInfo(serie);
                 //}
 
+                ////LibraryTest.TestManagement(info);
+
+                ////var nyaaScraper = new DailyTVTorrents();
+                ////var downloads = nyaaScraper.GetDownloadsForEntireSerie(info);
+
+                ////foreach (var dl in downloads)
+                ////{
+                ////    UTorrent.AddTorrent(new Uri(dl.url));
+                ////}
+
                 return new DerpThing() { 
-                    Name = query,
+                    Name = "",
                     List = new List<PossibleDownloadHit>(),
                     idx = 1
                 };

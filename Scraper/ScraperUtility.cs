@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Net;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace DerpScrapper.Scraper
 {
@@ -16,21 +17,11 @@ namespace DerpScrapper.Scraper
             new Tuple<char,char>('<', '>')
         });
 
-        public static string GetContentOfUrl(string url)
+        public static async Task<string> GetContentOfUrl(string url)
         {
-            HttpWebRequest req = (HttpWebRequest)WebRequest.Create(url);
-            string contents = "";
-            using (var response = req.GetResponse())
-            {
-                using (var content = response.GetResponseStream())
-                {
-                    using (var reader = new System.IO.StreamReader(content))
-                    {
-                        contents = reader.ReadToEnd();
-                    }
-                }
-            }
-            return contents;
+            var client = new WebClient();
+            string text = await client.DownloadStringTaskAsync(url);
+            return text;
         }
 
         public static HtmlAgilityPack.HtmlDocument HTMLDocumentOfContentFromURL(string requestURL, CookieContainer cookies = null, NetworkCredential cred = null, bool fakeAgent = false)
@@ -68,9 +59,12 @@ namespace DerpScrapper.Scraper
             return input.Substring(idxOf);
         }
 
-        public static string CleanUpName(string input)
+        public static string CleanUpName(string input, bool lower = true)
         {
-            input = input.ToLower();
+            if (lower)
+            {
+                input = input.ToLower();
+            }
 
             // Remove all stuff between brackets "( )" "[ ]" "< >" "{ }"
             foreach (var charCombo in removeCharCombos)

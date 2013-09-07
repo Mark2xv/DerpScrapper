@@ -28,20 +28,20 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.tabs = new System.Windows.Forms.TabControl();
+            this.LibraryTabs = new System.Windows.Forms.TabControl();
             this.tpg_addNew = new System.Windows.Forms.TabPage();
-            this.tabs.SuspendLayout();
+            this.LibraryTabs.SuspendLayout();
             this.SuspendLayout();
             // 
-            // tabs
+            // LibraryTabs
             // 
-            this.tabs.Controls.Add(this.tpg_addNew);
-            this.tabs.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.tabs.Location = new System.Drawing.Point(0, 0);
-            this.tabs.Name = "tabs";
-            this.tabs.SelectedIndex = 0;
-            this.tabs.Size = new System.Drawing.Size(1039, 494);
-            this.tabs.TabIndex = 0;
+            this.LibraryTabs.Controls.Add(this.tpg_addNew);
+            this.LibraryTabs.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.LibraryTabs.Location = new System.Drawing.Point(0, 0);
+            this.LibraryTabs.Name = "LibraryTabs";
+            this.LibraryTabs.SelectedIndex = 0;
+            this.LibraryTabs.Size = new System.Drawing.Size(1039, 494);
+            this.LibraryTabs.TabIndex = 0;
             // 
             // tpg_addNew
             // 
@@ -58,17 +58,17 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1039, 494);
-            this.Controls.Add(this.tabs);
+            this.Controls.Add(this.LibraryTabs);
             this.Name = "MainWindow";
             this.Text = "MainWindow";
-            this.tabs.ResumeLayout(false);
+            this.LibraryTabs.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
 
         #endregion
 
-        private System.Windows.Forms.TabControl tabs;
+        private System.Windows.Forms.TabControl LibraryTabs;
         private System.Windows.Forms.TabPage tpg_addNew;
     }
 }

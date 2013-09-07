@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using DerpScrapper.DBO;
 using System.Windows.Forms;
 using System.Drawing;
+using DerpScrapper.Scrapers;
+using DerpScrapper.Library;
 
 namespace DerpScrapper
 {
@@ -15,7 +17,7 @@ namespace DerpScrapper
         PictureBox loading;
         Label loadingText;
 
-        ListView seriesList;
+        FlowLayoutPanel seriesListPanel;
 
         public bool HasLibrary 
         { 
@@ -25,9 +27,9 @@ namespace DerpScrapper
             } 
         }
 
-        public Library Library { get; private set; }
+        public DBO.Library Library { get; private set; }
 
-        public LibraryTab(string name, Library lib = null)
+        public LibraryTab(string name, DBO.Library lib = null)
             : base(name)
         {
             if (lib != null)
@@ -41,18 +43,14 @@ namespace DerpScrapper
                         Anchor = AnchorStyles.None,
                         BackColor = Color.FromArgb(125,0,0,0)
                     },
-                    seriesList = new ListView() {
-                        View = View.LargeIcon,
-                        Dock = DockStyle.Fill
+                    seriesListPanel = new FlowLayoutPanel {
+                        Dock = DockStyle.Fill,
+                        FlowDirection = FlowDirection.LeftToRight,
+                        WrapContents = true,
+                        AutoScroll = true
                     }
                 }
-            );
-            SetDoubleBuffered(seriesList);
-
-            ImageList list = new ImageList();
-            list.ImageSize = new System.Drawing.Size(69, 100);
-            list.Images.Add(Resources.Resources.thumb_asdf_0506);
-            seriesList.LargeImageList = list;
+            );            
 
             loaderPanel.Controls.AddRange(new Control[] { 
                 loading = new PictureBox() {
@@ -61,13 +59,17 @@ namespace DerpScrapper
                     Anchor = AnchorStyles.None
                 },
                 loadingText = new Label() { 
-                    Text = "Busy constructing the collection...",
+                    Text = "Busy building your collection ...",
                     TextAlign = System.Drawing.ContentAlignment.MiddleCenter,
                     Anchor = AnchorStyles.None,
                     BackColor = Color.Transparent,
                     ForeColor = Color.White
                 }
             });
+
+            seriesListPanel.MouseEnter += (s,e) => {
+                seriesListPanel.Focus();
+            };
 
             loading.Center();
             loadingText.Center();
@@ -76,31 +78,24 @@ namespace DerpScrapper
             loading.Location = new Point(loading.Location.X, loading.Location.Y - 40);
         }
 
-        public void AddSerie(Serie serie)
+        public LibraryItem AddItem(Serie serie)
         {
-            this.seriesList.Items.Add(serie.Name, 0);
+            LibraryItem libItem;
+            this.seriesListPanel.Controls.Add(libItem = new LibraryItem(serie));
+            return libItem;
+        }
+
+        public LibraryItem AddItem(string queryName, List<UncertainSerieHit> uncertainHits)
+        {
+            LibraryItem libItem;
+            this.seriesListPanel.Controls.Add(libItem = new LibraryItem(queryName, uncertainHits));
+            return libItem;
         }
 
         public void LoadingDone()
         {
             this.Controls.Remove(loaderPanel);
             loaderPanel.Dispose();
-        }
-
-        private static void SetDoubleBuffered(System.Windows.Forms.Control c)
-        {
-            //Taxes: Remote Desktop Connection and painting
-            //http://blogs.msdn.com/oldnewthing/archive/2006/01/03/508694.aspx
-            if (System.Windows.Forms.SystemInformation.TerminalServerSession)
-                return;
-
-            System.Reflection.PropertyInfo aProp =
-                  typeof(System.Windows.Forms.Control).GetProperty(
-                        "DoubleBuffered",
-                        System.Reflection.BindingFlags.NonPublic |
-                        System.Reflection.BindingFlags.Instance);
-
-            aProp.SetValue(c, true, null);
         }
     }
 }

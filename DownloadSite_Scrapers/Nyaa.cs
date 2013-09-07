@@ -637,7 +637,12 @@ namespace DerpScrapper.DownloadSite_Scrapers
             {
                 string rssUrl = string.Format("http://www.nyaa.eu/?page=rss&cats=1_37&term={0}&offset={1}", name, cOffset);
                 Log.WriteLine("Getting contents of url: " + rssUrl + " ...");
-                string rss = ScraperUtility.GetContentOfUrl(rssUrl);
+                
+                
+                var task = ScraperUtility.GetContentOfUrl(rssUrl);
+                task.Wait();
+                var rss = task.Result;
+
                 System.Xml.XmlDocument doc = new System.Xml.XmlDocument();
                 Log.WriteLine("Parsing XML...");
                 doc.LoadXml(rss);
