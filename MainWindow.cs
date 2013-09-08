@@ -3,34 +3,22 @@ using DerpScrapper.Library;
 using DerpScrapper.Scraper;
 using DerpScrapper.Scrapers;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
 using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace DerpScrapper
 {
-    public partial class MainWindow : Form, IMessageFilter
+    public partial class MainWindow : Form
     {
         private const string WindowTitleFormat = "DerpScraper - {0} - {1} items";
         private ImageList ImageList;
         private TabPage AddNewLibraryTab;
 
-        [DllImport("user32.dll")]
-        private static extern IntPtr WindowFromPoint(Point pt);
-        [DllImport("user32.dll")]
-        private static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wp, IntPtr lp);
-
         public MainWindow()
         {
             InitializeComponent();
             this.Text = "DerpScraper";
+            this.Icon = Resources.Resources.books; 
 
             AddNewLibraryTab = LibraryTabs.TabPages[0];
 
@@ -42,22 +30,6 @@ namespace DerpScrapper
 
             LibraryTabs.Selecting += LibraryTabs_Selecting;
             this.Shown += MainWindow_Shown;
-        }
-
-        public bool PreFilterMessage(ref Message m)
-        {
-            if (m.Msg == 0x20a)
-            {
-                // WM_MOUSEWHEEL, find the control at screen position m.LParam
-                Point pos = new Point(m.LParam.ToInt32() & 0xffff, m.LParam.ToInt32() >> 16);
-                IntPtr hWnd = WindowFromPoint(pos);
-                if (hWnd != IntPtr.Zero && hWnd != m.HWnd && Control.FromHandle(hWnd) != null)
-                {
-                    SendMessage(hWnd, m.Msg, m.WParam, m.LParam);
-                    return true;
-                }
-            }
-            return false;
         }
 
         private void MainWindow_Shown(object sender, EventArgs e)
@@ -145,7 +117,6 @@ namespace DerpScrapper
                     serie,
                     libTabForCallback
                 });
-                break;
             }
 
             return libTabForCallback;
@@ -174,29 +145,45 @@ namespace DerpScrapper
             var args = (object[]) argsAr;
 
             var serie = (Serie) args[0];
-            var tab = (LibraryItem) args[1];
+            var libraryItem = (LibraryItem) args[1];
 
             TVDBScraper scraper = new TVDBScraper();
             var serieInfoTask = scraper.FindSerie(serie.Name);
             serieInfoTask.Wait();
-            var result = serieInfoTask.Result;
+            object result = serieInfoTask.Exception == null ? (object)serieInfoTask.Result : (object)serieInfoTask.Exception;
 
-            if (result.FailedHit)
-            {
-                // No hits found at all
-            }
-            else if (result.UncertainHit)
-            {
-                // Multiple hits found - show overlay on image
-            }
-
-
-            return null;
+            return new object[] { serie, result, libraryItem };
         }
 
-        private void RetrieveMetadataForSerie_Done(object args)
+        private void RetrieveMetadataForSerie_Done(object result)
         {
+            var args = (object[]) result;
 
+            var serie = (Serie) args[0];
+            object searchResult = args[1];
+            var libraryItem = (LibraryItem) args[2];
+
+            if (searchResult is Exception)
+            {
+                throw (Exception)searchResult;
+            }
+
+            var searchResultOb = (SerieInfoSearchResult) searchResult;
+
+            if (searchResultOb.FailedHit)
+            {
+                // No hits found at all
+                libraryItem.SetUnknownState();
+            }
+            else if (searchResultOb.UncertainHit)
+            {
+                // Multiple hits found - show overlay on image
+                libraryItem.SetMultipleHitsState(searchResultOb.PossibleSerieHits);
+            }
+            else
+            {
+                libraryItem.SetOKState();
+            }
         }
 
         private void LibraryTabs_Selecting(object sender, TabControlCancelEventArgs e)

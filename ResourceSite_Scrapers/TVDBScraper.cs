@@ -1,14 +1,12 @@
-﻿using System;
+﻿using DerpScrapper.DBO;
+using DerpScrapper.Scraper;
+using HtmlAgilityPack;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using HtmlAgilityPack;
-using DerpScrapper.Scraper;
-using DerpScrapper.DBO;
-using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
 using System.Xml;
-using System.Net.Http;
 
 namespace DerpScrapper.Scrapers
 {
@@ -59,6 +57,8 @@ namespace DerpScrapper.Scrapers
         public TVDBLanguage Language;
         public Uri Page;
         public Uri Image;
+        public string[] AlternativeNames;
+        public int FirstYear;
     }
 
     public struct TVDBLanguage
@@ -224,38 +224,56 @@ namespace DerpScrapper.Scrapers
             var document = new XmlDocument();
             document.LoadXml(contents);
 
-            var seriesNodes = document.SelectNodes("//Series");
-            if (seriesNodes.Count == 0)
+            try
             {
-                return new SerieInfoSearchResult(seriesQuery, true);
-            }
-            else if (seriesNodes.Count == 1)
-            {
-                // Likely success
-                var serieNode = seriesNodes[0];
-                var serieInfo = new SerieInfo();
-                serieInfo.serie.Name = serieNode.SelectSingleNode("/SeriesName").InnerText;
-
-
-                return new SerieInfoSearchResult(seriesQuery, serieInfo);
-            }
-            else
-            {
-                var uncertainHits = new List<UncertainSerieHit>();
-                foreach (XmlNode serieNode in seriesNodes)
+                var seriesNodes = document.SelectNodes("//Series");
+                if (seriesNodes.Count == 0)
                 {
-                    var language = TVDBScraper.GetLanguage(serieNode["language"].InnerText);
-                    string seriesId = serieNode["seriesid"].InnerText;
-                    uncertainHits.Add(new UncertainSerieHit()
-                    {
-                        Name = serieNode["SeriesName"].InnerText,
-                        Language = language,
-                        Image = await GetPosterImageUrlForSeriesId(seriesId),
-                        Page = new Uri(string.Format(BaseViewURL, seriesId, language.Id))
-                    });
+                    return new SerieInfoSearchResult(seriesQuery, true);
                 }
+                else if (seriesNodes.Count == 1)
+                {
+                    // Likely success
+                    var serieNode = seriesNodes[0];
+                    var serieInfo = new SerieInfo();
+                    serieInfo.serie.Name = serieNode["SeriesName"].InnerText;
+                    serieInfo.resource.ResourceSiteId = int.Parse(serieNode["seriesid"].InnerText);
 
-                return new SerieInfoSearchResult(seriesQuery, uncertainHits);
+                    return new SerieInfoSearchResult(seriesQuery, serieInfo);
+                }
+                else
+                {
+                    var uncertainHits = new List<UncertainSerieHit>();
+                    foreach (XmlNode serieNode in seriesNodes)
+                    {
+                        var language = TVDBScraper.GetLanguage(serieNode["language"].InnerText);
+                        string seriesId = serieNode["seriesid"].InnerText;
+                        int year = serieNode["FirstAired"] != null ? int.Parse(serieNode["FirstAired"].InnerText.Split(new char[]{'-'}).FirstOrDefault()) : 0;
+                        string[] aliasNames = serieNode["AliasNames"] != null ? serieNode["AliasNames"].InnerText.Split(new char[]{'|'}, StringSplitOptions.RemoveEmptyEntries) : new string[0];
+
+                        uncertainHits.Add(new UncertainSerieHit()
+                        {
+                            Name = serieNode["SeriesName"].InnerText,
+                            Language = language,
+                            Image = await GetPosterImageUrlForSeriesId(seriesId),
+                            Page = new Uri(string.Format(BaseViewURL, seriesId, language.Id)),
+                            FirstYear = year,
+                            AlternativeNames = aliasNames
+                        });
+                    }
+
+                    return new SerieInfoSearchResult(seriesQuery, uncertainHits);
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("--------BEGIN---------");
+                Console.WriteLine("Exception on TVDBScraper @ " + e.Source);
+                Console.WriteLine(e.StackTrace);
+                Console.WriteLine(e.Message);
+                Console.WriteLine(contents);
+                Console.WriteLine("---------END----------");
+                return null;
             }
         }
 

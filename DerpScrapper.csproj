@@ -39,6 +39,9 @@
   <PropertyGroup>
     <StartupObject>DerpScrapper.Program</StartupObject>
   </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>books.ico</ApplicationIcon>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="HtmlAgilityPack">
       <HintPath>.\Resources\Libs\HtmlAgilityPack.dll</HintPath>
@@ -77,10 +80,10 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AddNewLibrary.cs">
+    <Compile Include="Library\AddNewLibrary.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="AddNewLibrary.Designer.cs">
+    <Compile Include="Library\AddNewLibrary.Designer.cs">
       <DependentUpon>AddNewLibrary.cs</DependentUpon>
     </Compile>
     <Compile Include="APIs\DailyTvTorrentsAPI\DailyTvTorrents.cs" />
@@ -88,11 +91,23 @@
     <Compile Include="APIs\DailyTvTorrentsAPI\Show.cs" />
     <Compile Include="APIs\DailyTvTorrentsAPI\Torrent.cs" />
     <Compile Include="DBO\BaseDB.cs" />
+    <Compile Include="Library\FixMismatch.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Library\FixMismatch.Designer.cs">
+      <DependentUpon>FixMismatch.cs</DependentUpon>
+    </Compile>
     <Compile Include="Library\LibraryTab.cs">
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="Library\LibraryItem.cs">
       <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Library\SelectHit.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Library\SelectHit.Designer.cs">
+      <DependentUpon>SelectHit.cs</DependentUpon>
     </Compile>
     <Compile Include="Log.cs" />
     <Compile Include="MainWindow.cs">
@@ -101,13 +116,11 @@
     <Compile Include="MainWindow.Designer.cs">
       <DependentUpon>MainWindow.cs</DependentUpon>
     </Compile>
-    <Compile Include="Positioning.cs" />
     <Compile Include="Resources\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="WPFWindow.cs" />
     <Compile Include="DBO\DBOject.cs" />
     <Compile Include="DBO\Episode.cs" />
     <Compile Include="DBO\Genre.cs" />
@@ -122,12 +135,6 @@
     <Compile Include="DownloadSite_Scrapers\DownloadSettings.cs" />
     <Compile Include="DownloadSite_Scrapers\Nyaa.cs" />
     <Compile Include="DownloadSite_Scrapers\TokyoToshokan.cs" />
-    <Compile Include="Empty.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Empty.Designer.cs">
-      <DependentUpon>Empty.cs</DependentUpon>
-    </Compile>
     <Compile Include="Extensions.cs" />
     <Compile Include="Scraper\IDownloadSite.cs" />
     <Compile Include="Program.cs" />
@@ -139,14 +146,14 @@
     <Compile Include="WorkThread\WorkThreadManager.cs" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="AddNewLibrary.resx">
+    <EmbeddedResource Include="Library\AddNewLibrary.resx">
       <DependentUpon>AddNewLibrary.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Empty.resx">
-      <DependentUpon>Empty.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Library\LibraryTab.resx">
       <DependentUpon>LibraryTab.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Library\SelectHit.resx">
+      <DependentUpon>SelectHit.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="MainWindow.resx">
       <DependentUpon>MainWindow.cs</DependentUpon>
@@ -178,6 +185,8 @@
     <None Include="Resources\Images\edit.png" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="books.ico" />
+    <Content Include="Resources\Images\books.ico" />
     <Content Include="Resources\Libs\HtmlAgilityPack.dll" />
     <Content Include="Resources\Libs\Newtonsoft.Json.dll" />
     <Content Include="Resources\Libs\Ookii.Dialogs.dll" />

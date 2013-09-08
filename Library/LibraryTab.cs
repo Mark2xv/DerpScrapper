@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using DerpScrapper.DBO;
-using System.Windows.Forms;
-using System.Drawing;
-using DerpScrapper.Scrapers;
+﻿using DerpScrapper.DBO;
 using DerpScrapper.Library;
+using DerpScrapper.Scrapers;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Windows.Forms;
 
 namespace DerpScrapper
 {
@@ -18,6 +14,8 @@ namespace DerpScrapper
         Label loadingText;
 
         FlowLayoutPanel seriesListPanel;
+
+        private bool LoadingState = false;
 
         public bool HasLibrary 
         { 
@@ -36,7 +34,6 @@ namespace DerpScrapper
             {
                 Library = lib;
             }
-
 
             this.Controls.AddRange(new Control[] {
                     loaderPanel = new Panel() {
@@ -75,6 +72,8 @@ namespace DerpScrapper
             loadingText.Center();
             loaderPanel.Center();
 
+            LoadingState = true;
+
             loading.Location = new Point(loading.Location.X, loading.Location.Y - 40);
         }
 
@@ -82,6 +81,7 @@ namespace DerpScrapper
         {
             LibraryItem libItem;
             this.seriesListPanel.Controls.Add(libItem = new LibraryItem(serie));
+            libItem.Active = !LoadingState;
             return libItem;
         }
 
@@ -89,6 +89,7 @@ namespace DerpScrapper
         {
             LibraryItem libItem;
             this.seriesListPanel.Controls.Add(libItem = new LibraryItem(queryName, uncertainHits));
+            libItem.Active = !LoadingState;
             return libItem;
         }
 
@@ -96,6 +97,15 @@ namespace DerpScrapper
         {
             this.Controls.Remove(loaderPanel);
             loaderPanel.Dispose();
+            LoadingState = false;
+
+            foreach (Control c in seriesListPanel.Controls)
+            {
+                if (c is LibraryItem)
+                {
+                    ((LibraryItem)c).Active = true;
+                }
+            }
         }
     }
 }

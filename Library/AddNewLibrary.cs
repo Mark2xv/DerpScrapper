@@ -1,13 +1,4 @@
-﻿using DerpScrapper.DBO;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System;
 using System.Windows.Forms;
 
 namespace DerpScrapper
@@ -30,6 +21,7 @@ namespace DerpScrapper
         public AddNewLibrary()
         {
             InitializeComponent();
+            this.Icon = Resources.Resources.books; 
             this.KeyPreview = true;
             this.KeyUp += AddNewLibrary_KeyUp;
 
