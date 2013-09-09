@@ -4,7 +4,7 @@ using System.Data.SQLite;
 
 namespace DerpScrapper
 {
-    class ProgressReporter
+    public class ProgressReporter
     {
         public ProgressReporter(BackgroundWorker bgWorker)
         {
@@ -75,7 +75,7 @@ namespace DerpScrapper
                 if (this.usesDBO && this.SetDboPointer != null)
                 {
                     // Overwrite the BaseDB.connection. It's a [ThreadStatic] variable, so nothing on the mainthread (or other threads, for that matter) will be changed
-                    BaseDB.connection = this.SetDboPointer;
+                    BaseDB.Connection = this.SetDboPointer;
                 }
                 
                 e.Result = task(new ProgressReporter(this.workingThread), argument);

@@ -77,7 +77,7 @@ namespace DerpScrapper
             loading.Location = new Point(loading.Location.X, loading.Location.Y - 40);
         }
 
-        public LibraryItem AddItem(Serie serie)
+        public LibraryItem AddItem(SerieInfo serie)
         {
             LibraryItem libItem;
             this.seriesListPanel.Controls.Add(libItem = new LibraryItem(serie));
@@ -85,13 +85,13 @@ namespace DerpScrapper
             return libItem;
         }
 
-        public LibraryItem AddItem(string queryName, List<UncertainSerieHit> uncertainHits)
-        {
-            LibraryItem libItem;
-            this.seriesListPanel.Controls.Add(libItem = new LibraryItem(queryName, uncertainHits));
-            libItem.Active = !LoadingState;
-            return libItem;
-        }
+        //public LibraryItem AddItem(string queryName, List<UncertainSerieHit> uncertainHits)
+        //{
+        //    LibraryItem libItem;
+        //    this.seriesListPanel.Controls.Add(libItem = new LibraryItem(queryName, uncertainHits));
+        //    libItem.Active = !LoadingState;
+        //    return libItem;
+        //}
 
         public void LoadingDone()
         {

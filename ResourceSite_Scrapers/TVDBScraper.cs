@@ -4,6 +4,7 @@ using HtmlAgilityPack;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using System.Xml;
@@ -53,6 +54,7 @@ namespace DerpScrapper.Scrapers
 
     public class UncertainSerieHit
     {
+        public string Id;
         public string Name;
         public TVDBLanguage Language;
         public Uri Page;
@@ -80,6 +82,8 @@ namespace DerpScrapper.Scrapers
 
         private const string BaseViewURL = "http://thetvdb.com/?tab=series&id={0}&lid={1}";
         private const string ImageBaseURL = "http://thetvdb.com/banners";
+
+        private const bool DownloadRawXML = true;
 
         private static TVDBLanguage[] _languages = { 
 #region TVDB Language Codes
@@ -236,8 +240,9 @@ namespace DerpScrapper.Scrapers
                     // Likely success
                     var serieNode = seriesNodes[0];
                     var serieInfo = new SerieInfo();
-                    serieInfo.serie.Name = serieNode["SeriesName"].InnerText;
-                    serieInfo.resource.ResourceSiteId = int.Parse(serieNode["seriesid"].InnerText);
+                    serieInfo.Serie.Name = serieNode["SeriesName"].InnerText;
+                    serieInfo.Resource.ResourceSiteId = 1;
+                    serieInfo.Resource.ExternalSerieId = serieNode["seriesid"].InnerText;
 
                     return new SerieInfoSearchResult(seriesQuery, serieInfo);
                 }
@@ -253,6 +258,7 @@ namespace DerpScrapper.Scrapers
 
                         uncertainHits.Add(new UncertainSerieHit()
                         {
+                            Id = seriesId,
                             Name = serieNode["SeriesName"].InnerText,
                             Language = language,
                             Image = await GetPosterImageUrlForSeriesId(seriesId),
@@ -291,12 +297,138 @@ namespace DerpScrapper.Scrapers
             {
                 return requestUri;
             }
-            return null;
+            else
+            {
+                requestUri = new Uri("http://i.imgur.com/ui0XhpRb.jpg");
+            }
+
+            response.Dispose();
+            request.Dispose();
+            httpClient.Dispose();
+
+            return requestUri;
         }
 
-        public async Task<SerieInfoSearchResult> FindAllInformationForSerie(string seriesQuery)
+        public async Task<SerieInfo> FindAllInformationForSerie(string seriesId, string langCode = "en")
         {
-            return null;
+            XmlDocument xmlDocument;
+
+            string request = BaseURL + "/" + AccountIdentifier + "/series/" + seriesId + "/all/" + langCode;
+            if (DownloadRawXML)
+            {
+                string content = await ScraperUtility.GetContentOfUrl(request + ".xml");
+                xmlDocument = new XmlDocument();
+                xmlDocument.LoadXml(content);
+            }
+            else
+            {
+                // TODO: Fix zipped xml downloading
+
+                //WebClient cli = new WebClient();
+
+                //string outPath = "C:\\DerpScraper\\Cache\\";
+                //string fileTarget = outPath + "RefreshSeries_" + seriesId + ".zip";
+                //await cli.DownloadFileTaskAsync(request + ".zip", fileTarget);
+                //cli.Dispose();
+
+                //var zip = new Ionic.Zip.ZipFile(fileTarget);
+                //zip.ExtractAll(outPath + "RefreshSeries_" + seriesId + "\\", Ionic.Zip.ExtractExistingFileAction.OverwriteSilently);
+                //zip.Dispose();
+            }
+
+            var seriesNode = xmlDocument.SelectSingleNode("//Series");
+
+            var seriesInfo = ParseSeriesXml(seriesNode);
+
+            var episodeNodes = xmlDocument.SelectNodes("//Episode");
+            foreach (XmlNode episodeNode in episodeNodes)
+            {
+                seriesInfo.Episodes.Add(ParseEpisodeXml(episodeNode));
+            }
+
+            return seriesInfo;
+        }
+
+        private SerieInfo ParseSeriesXml(XmlNode seriesNode)
+        {
+            string seriesName = IfExists(seriesNode, "SeriesName");
+            string seriesId = IfExists(seriesNode, "id");
+            string network = IfExists(seriesNode, "Network");
+            string runStatus = IfExists(seriesNode, "Status");
+            string[] actors = IfExists(seriesNode, "Actors").Split(new char[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
+            string firstAired = IfExists(seriesNode, "FirstAired", "");
+            string[] genres = IfExists(seriesNode, "Genre").Split(new char[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
+            string overview = IfExists(seriesNode, "Overview");
+            string rating = IfExists(seriesNode, "Rating");
+
+            string bannerUrl = IfExists(seriesNode, "banner");
+            string posterUrl = IfExists(seriesNode, "poster");
+            string fanartUrl = IfExists(seriesNode, "fanart");
+
+            SerieInfo info = new SerieInfo();
+            info.Serie.Name = seriesName;
+            info.Serie.Ongoing = runStatus != "Ended";
+            info.Serie.Plot = overview;
+            info.Serie.Language = "en";
+
+            info.BannerImage.RemoteURL = bannerUrl != "" ? ImageBaseURL + "/" + bannerUrl : "";
+            info.PosterImage.RemoteURL = posterUrl != "" ? ImageBaseURL + "/" + posterUrl : "";
+            info.BackgroundImage.RemoteURL = fanartUrl != "" ? ImageBaseURL + "/" + fanartUrl : "";
+
+            info.Resource.ExternalSerieId = seriesId;
+            info.Resource.ResourceSiteId = 1;
+
+            float ratingFloat;
+            bool floatParseResultSuccess = float.TryParse(rating, out ratingFloat);
+            info.Resource.ResourceSiteRating = ratingFloat;
+
+            foreach (string genreName in genres)
+            {
+                info.Genres.Add(new SerieGenre() { GenreId = Genre.GetGenre(genreName).Id });
+            }
+
+            info.Metadata.FirstAired = firstAired != "" ? DateTime.Parse(firstAired).ToUnixTimestamp() : 0;
+            info.Metadata.Network = network;
+
+            return info;
+        }
+
+        private Episode ParseEpisodeXml(XmlNode episodeNode)
+        {
+            string extId = IfExists(episodeNode, "id");
+            string director = IfExists(episodeNode, "Director");
+            string imageFlag = IfExists(episodeNode, "EpImgFlag");
+            string epName = IfExists(episodeNode, "EpisodeName");
+            string seasonNr = IfExists(episodeNode, "Combined_season");
+            string epNr = IfExists(episodeNode, "Combined_episodenumber");
+            string overview = IfExists(episodeNode, "Overview");
+            string imageUrl = IfExists(episodeNode, "filename");
+
+            Episode ep = new Episode();
+            ep.ExternalEpisodeId = extId;
+            ep.EpisodeName = epName;
+
+            int epNrResult;
+            int seasonNrResult;
+
+            bool epParseSuccess = int.TryParse(epNr, out epNrResult);
+            bool seasonParseSuccess = int.TryParse(seasonNr, out seasonNrResult);
+
+            ep.EpisodeNumber = epNrResult;
+            ep.SeasonNumber = seasonNrResult;
+            ep.Synopsis = overview;
+
+            var image = new EpisodeImage();
+            image.RemoteURL = imageUrl;
+
+            ep.Image = image;
+
+            return ep;
+        }
+        
+        private string IfExists(XmlNode baseNode, string key, string defaultValue = "")
+        {
+            return baseNode[key] != null ? baseNode[key].InnerText : "";
         }
 
         private static IOrderedEnumerable<Episode> OrderByEpNr(List<Episode> episodeList)

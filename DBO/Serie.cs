@@ -18,7 +18,7 @@ namespace DerpScrapper.DBO
 
         public static Serie GetByName(string name)
         {
-            var com = BaseDB.connection.CreateCommand("SELECT ROWID FROM Serie WHERE Name LIKE '" + name + "' COLLATE NOCASE");
+            var com = BaseDB.Connection.CreateCommand("SELECT ROWID FROM Serie WHERE Name LIKE '" + name + "' COLLATE NOCASE");
             var reader = com.ExecuteReader();
             if (reader.HasRows && reader.Read())
             {
@@ -50,7 +50,7 @@ namespace DerpScrapper.DBO
         {
             List<Episode> eps = new List<Episode>();
 
-            var com = BaseDB.connection.CreateCommand("SELECT ROWID FROM Episode WHERE SerieId = " + this.Id.ToString());
+            var com = BaseDB.Connection.CreateCommand("SELECT ROWID FROM Episode WHERE SerieId = " + this.Id.ToString());
             var reader = com.ExecuteReader();
             while (reader.HasRows && reader.Read())
             {
@@ -69,7 +69,7 @@ namespace DerpScrapper.DBO
         {
             List<SerieGenre> eps = new List<SerieGenre>();
 
-            var com = BaseDB.connection.CreateCommand("SELECT ROWID FROM SerieGenre WHERE SerieId = " + this.Id.ToString());
+            var com = BaseDB.Connection.CreateCommand("SELECT ROWID FROM SerieGenre WHERE SerieId = " + this.Id.ToString());
             var reader = com.ExecuteReader();
             while (reader.HasRows && reader.Read())
             {
@@ -83,7 +83,7 @@ namespace DerpScrapper.DBO
         {
             SerieMetadata meta = null;
 
-            var com = BaseDB.connection.CreateCommand("SELECT ROWID FROM SerieMetadata WHERE SerieId = " + this.Id.ToString());
+            var com = BaseDB.Connection.CreateCommand("SELECT ROWID FROM SerieMetadata WHERE SerieId = " + this.Id.ToString());
             var reader = com.ExecuteReader();
             while (reader.HasRows && reader.Read())
             {
@@ -98,12 +98,17 @@ namespace DerpScrapper.DBO
         {
             SerieResource res = null;
 
-            var com = BaseDB.connection.CreateCommand("SELECT ROWID FROM SerieResource WHERE SerieId = " + this.Id.ToString());
+            var com = BaseDB.Connection.CreateCommand("SELECT ROWID FROM SerieResource WHERE SerieId = " + this.Id.ToString());
             var reader = com.ExecuteReader();
             while (reader.HasRows && reader.Read())
             {
                 res = new SerieResource(reader.GetInt32(0));
                 break;
+            }
+
+            if (res == null)
+            {
+                res = new SerieResource();
             }
 
             return res;
@@ -202,6 +207,18 @@ namespace DerpScrapper.DBO
             set
             {
                 this["LibraryId"] = value;
+            }
+        }
+
+        public SerieResource SerieResource
+        {
+            get
+            {
+                return this.GetResource();
+            }
+            set
+            {
+                
             }
         }
     }

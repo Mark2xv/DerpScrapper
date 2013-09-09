@@ -50,38 +50,41 @@
             this.LabelPath.AutoSize = true;
             this.LabelPath.Location = new System.Drawing.Point(9, 45);
             this.LabelPath.Name = "LabelPath";
-            this.LabelPath.Size = new System.Drawing.Size(63, 13);
+            this.LabelPath.Size = new System.Drawing.Size(0, 13);
             this.LabelPath.TabIndex = 1;
-            this.LabelPath.Text = "blablablabla";
             // 
             // SelectableItems
             // 
             this.SelectableItems.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.SelectableItems.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
-            this.SelectableItems.Location = new System.Drawing.Point(12, 71);
+            this.SelectableItems.AutoScroll = true;
+            this.SelectableItems.Location = new System.Drawing.Point(10, 71);
             this.SelectableItems.Name = "SelectableItems";
-            this.SelectableItems.Size = new System.Drawing.Size(296, 288);
+            this.SelectableItems.Size = new System.Drawing.Size(300, 288);
             this.SelectableItems.TabIndex = 2;
             // 
             // ButtonOK
             // 
+            this.ButtonOK.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.ButtonOK.Location = new System.Drawing.Point(233, 371);
             this.ButtonOK.Name = "ButtonOK";
             this.ButtonOK.Size = new System.Drawing.Size(75, 23);
             this.ButtonOK.TabIndex = 3;
             this.ButtonOK.Text = "OK";
             this.ButtonOK.UseVisualStyleBackColor = true;
+            this.ButtonOK.Click += new System.EventHandler(this.ButtonOK_Click);
             // 
             // ButtonCancel
             // 
+            this.ButtonCancel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.ButtonCancel.Location = new System.Drawing.Point(12, 371);
             this.ButtonCancel.Name = "ButtonCancel";
             this.ButtonCancel.Size = new System.Drawing.Size(75, 23);
             this.ButtonCancel.TabIndex = 4;
             this.ButtonCancel.Text = "Cancel";
             this.ButtonCancel.UseVisualStyleBackColor = true;
+            this.ButtonCancel.Click += new System.EventHandler(this.ButtonCancel_Click);
             // 
             // SelectHit
             // 

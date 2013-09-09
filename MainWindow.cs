@@ -14,9 +14,24 @@ namespace DerpScrapper
         private ImageList ImageList;
         private TabPage AddNewLibraryTab;
 
+        private static MainWindow _instance;
+        public static MainWindow Instance
+        {
+            get
+            {
+                return _instance;
+            }
+            private set
+            {
+                _instance = value;
+            }
+        }
+
         public MainWindow()
         {
             InitializeComponent();
+            Instance = this;
+
             this.Text = "DerpScraper";
             this.Icon = Resources.Resources.books; 
 
@@ -99,22 +114,24 @@ namespace DerpScrapper
             {
                 at++;
 
+                //if (dirInfo.Name != "Black Lagoon")
+                //    continue;
+
                 // Parse name into something usable
                 string cleanName = ScraperUtility.CleanUpName(dirInfo.Name.Replace('_', ' '), false);
 
-                Serie serie = new Serie();
+                var serieInfo = new SerieInfo();
+                serieInfo.Serie.LibraryId = library.Id;
+                serieInfo.Serie.Name = cleanName;
+                serieInfo.Serie.FolderPath = dirInfo.FullName;
+                serieInfo.Serie.FolderIsNetworkMount = false;
 
-                serie.LibraryId = library.Id;
-                serie.Name = cleanName;
-                serie.FolderPath = dirInfo.FullName;
-                serie.FolderIsNetworkMount = false;
-                
-                serie.Insert();
+                serieInfo.Store();
 
                 reporter.ReportProgress(new object[] {
                     at,
                     dirs.Length,
-                    serie,
+                    serieInfo,
                     libTabForCallback
                 });
             }
@@ -132,7 +149,7 @@ namespace DerpScrapper
             object[] args = (object[])progressData;
             int at = (int)args[0];
             int length = (int)args[1];
-            Serie serie = (Serie)args[2];
+            SerieInfo serie = (SerieInfo) args[2];
             LibraryTab tab = (LibraryTab)args[3];
 
             var item = tab.AddItem(serie);
@@ -144,13 +161,16 @@ namespace DerpScrapper
         {
             var args = (object[]) argsAr;
 
-            var serie = (Serie) args[0];
+            var serie = (SerieInfo) args[0];
             var libraryItem = (LibraryItem) args[1];
 
             TVDBScraper scraper = new TVDBScraper();
-            var serieInfoTask = scraper.FindSerie(serie.Name);
+            var serieInfoTask = scraper.FindSerie(serie.Serie.Name);
             serieInfoTask.Wait();
             object result = serieInfoTask.Exception == null ? (object)serieInfoTask.Result : (object)serieInfoTask.Exception;
+
+            if (serieInfoTask.Exception != null)
+                throw serieInfoTask.Exception;
 
             return new object[] { serie, result, libraryItem };
         }
@@ -159,7 +179,7 @@ namespace DerpScrapper
         {
             var args = (object[]) result;
 
-            var serie = (Serie) args[0];
+            var serie = (SerieInfo) args[0];
             object searchResult = args[1];
             var libraryItem = (LibraryItem) args[2];
 
@@ -182,7 +202,17 @@ namespace DerpScrapper
             }
             else
             {
-                libraryItem.SetOKState();
+                // Reload
+                Console.WriteLine("Reload item {0} (rId={1})", serie.Serie.Name, searchResultOb.SerieInfo.Resource.ExternalSerieId);
+
+                WorkThreadManager.Instance.AddNewTask(
+                    MainWindow.Instance.ReloadItem,
+                    new object[] { serie, searchResultOb.SerieInfo.Resource.ExternalSerieId, libraryItem },
+                    true,
+                    MainWindow.Instance.ReloadItemDone
+                );
+
+                libraryItem.SetBusyState();
             }
         }
 
@@ -219,12 +249,52 @@ namespace DerpScrapper
             }
         }
 
+        public object ReloadItem(ProgressReporter reporter, object args)
+        {
+            var argsArray = (object[]) args;
+            SerieInfo serie = (SerieInfo) argsArray[0];
+            string externalId = (string) argsArray[1];
+            LibraryItem libItem = (LibraryItem) argsArray[2];
+
+            TVDBScraper scraper = new TVDBScraper();
+            var scrapeTask = scraper.FindAllInformationForSerie(externalId);
+            
+            scrapeTask.Wait();
+
+            SerieInfo result = scrapeTask.Result;
+
+            var origSerieId = serie.Serie.Id;
+            var origLibId = serie.Serie.LibraryId;
+
+            if (serie.Serie.Exists)
+            {
+                serie.Serie.Delete();
+                serie.Metadata.Delete();
+                serie.Resource.Delete();
+                serie.Genres.ForEach(p => p.Delete());
+                serie.Episodes.ForEach(p => p.Delete());
+            }
+
+            result.Store();
+
+            return new object[] { result, libItem };
+        }
+
+        public void ReloadItemDone(object args)
+        {
+            var argsArray = (object[]) args;
+
+            SerieInfo newSerieInfo = (SerieInfo) argsArray[0];
+            LibraryItem libraryItem = (LibraryItem) argsArray[1];
+            Console.WriteLine("Reloading Item {0} done", newSerieInfo.Serie.Name);
+            libraryItem.Reload(newSerieInfo, newSerieInfo.PosterImage.Url);
+        }
+
         public new void Dispose()
         {
             LibraryTabs.Selecting -= LibraryTabs_Selecting;
             base.Dispose();
         }
 
-        
     }
 }

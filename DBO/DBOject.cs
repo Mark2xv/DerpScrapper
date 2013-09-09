@@ -65,6 +65,18 @@ namespace DerpScrapper
 
         public bool Exists;
 
+        public int Store()
+        {
+            if (this.Exists)
+            {
+                this.Update();
+                return this.Id;
+            }
+            else
+            {
+                return this.Insert();
+            }
+        }
         public int Insert()
         {
             if (this.rowId != -1)
@@ -79,7 +91,7 @@ namespace DerpScrapper
             }
             columnsString = columnsString.TrimEnd(',');
             valuesString = valuesString.TrimEnd(',');
-            var command = BaseDB.connection.CreateCommand();
+            var command = BaseDB.Connection.CreateCommand();
             command.CommandText = string.Format("INSERT INTO {0} ({1}) VALUES ({2}); SELECT last_insert_rowid() as id ", this.table, columnsString, valuesString);
             
             // Any keys that have been set
@@ -96,7 +108,7 @@ namespace DerpScrapper
 
         public void Retrieve(int rowId)
         {
-            SQLiteCommand command = BaseDB.connection.CreateCommand();
+            SQLiteCommand command = BaseDB.Connection.CreateCommand();
             command.CommandText = string.Format("SELECT ROWID, * FROM {0} WHERE ROWID = {1}", this.table, rowId);
             var reader = command.ExecuteReader();
             if (reader.HasRows)
@@ -156,7 +168,7 @@ namespace DerpScrapper
             }
             updateString = updateString.TrimEnd(',');
 
-            var command = BaseDB.connection.CreateCommand();
+            var command = BaseDB.Connection.CreateCommand();
             command.CommandText = string.Format("UPDATE {0} SET {1} WHERE ROWID = {2}", table, updateString, this.rowId);
 
             // Any keys that have been set
@@ -173,15 +185,15 @@ namespace DerpScrapper
             if (this.rowId == -1)
                 return false;
 
-            var command = BaseDB.connection.CreateCommand();
+            var command = BaseDB.Connection.CreateCommand();
             command.CommandText = string.Format("DELETE FROM {0} WHERE ROWID = {1}", this.table, this.rowId);
 
             int retVal = command.ExecuteNonQuery();
+            this.Exists = false;
             if (retVal == 1)
             {
-                this.Exists = false;
                 return true;
-            } 
+            }
             return false;
         }
     }

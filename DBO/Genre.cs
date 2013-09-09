@@ -41,7 +41,7 @@ namespace DerpScrapper.DBO
 
         public override bool hasDefaultValues()
         {
-            return true;
+            return false;
         }
 
         public override string getDefaultValuesQuery()
@@ -53,14 +53,15 @@ namespace DerpScrapper.DBO
         public static Genre GetGenre(string name)
         {
             string query = "SELECT ROWID FROM Genre WHERE Name LIKE '" + name + "'";
-            var comm = BaseDB.connection.CreateCommand();
+            
+            var comm = BaseDB.Connection.CreateCommand();
             comm.CommandText = query;
             var row = comm.ExecuteScalar();
             if (row == null)
             {
                 // Insert
                 Genre g = new Genre();
-                g["Name"] = name;
+                g.Name = name;
                 g.Insert();
                 return g;
             }

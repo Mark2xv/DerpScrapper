@@ -10,8 +10,27 @@ namespace DerpScrapper
 {
     public static class BaseDB
     {
+        private static string DBPath;
+
         [ThreadStatic]
-        public static SQLiteConnection connection;
+        private static SQLiteConnection _connection;
+
+        public static SQLiteConnection Connection
+        {
+            get
+            {
+                if (_connection == null)
+                {
+                    _connection = new SQLiteConnection("Data Source=" + DBPath + ";Version=3;");
+                    _connection.Open();
+                }
+                return _connection;
+            }
+            set
+            {
+                _connection = value;
+            }
+        }
 
         public struct SQLiteDBType
         {
@@ -101,7 +120,7 @@ namespace DerpScrapper
         public static void Setup()
         {
             string tableQuery = "SELECT name,sql FROM sqlite_master WHERE type='table'";
-            SQLiteCommand tableCm = connection.CreateCommand();
+            SQLiteCommand tableCm = Connection.CreateCommand();
             tableCm.CommandText = tableQuery;
             var reader = tableCm.ExecuteReader();
             List<TableDefinition> tables = new List<TableDefinition>();
@@ -169,9 +188,13 @@ namespace DerpScrapper
 
             foreach (var assembly in Assembly.GetExecutingAssembly().GetTypes().Where(t => String.Equals(t.Namespace, "DerpScrapper.DBO", StringComparison.Ordinal)))
             {
-                var c = assembly.GetConstructor(new Type[] { typeof(int) });
-                var dbObject = (DBObject)c.Invoke(new object[] { -1 });
+                if (assembly.BaseType.Name == "Enum")
+                    continue;
 
+                var c = assembly.GetConstructor(new Type[] { typeof(int) });
+                DBObject dbObject = null;
+                dbObject = (DBObject) c.Invoke(new object[] { -1 });
+           
                 bool contains = false;
                 foreach (var table in tables)
                 {
@@ -275,7 +298,7 @@ namespace DerpScrapper
             }
 
 
-            var initCommand = connection.CreateCommand();
+            var initCommand = Connection.CreateCommand();
             initCommand.CommandText = createQuery;
             initCommand.CommandType = System.Data.CommandType.Text;
             initCommand.ExecuteNonQuery();
@@ -290,8 +313,10 @@ namespace DerpScrapper
                 {
                     SQLiteConnection.CreateFile(dbPath);
                 }
-                connection = new SQLiteConnection("Data Source=" + dbPath + ";Version=3;");
-                connection.Open();
+                DBPath = dbPath;
+
+                var get = Connection;
+
                 Setup();
                 return true;
             }

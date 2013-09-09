@@ -82,7 +82,7 @@ namespace DerpScrapper.DownloadSite_Scrapers
             if (!this.loggedIn && !this.login())
                 return null;
 
-            var serie = serieInfo.serie;
+            var serie = serieInfo.Serie;
 
             string requestUrl = string.Format("http://bakabt.me/browse.php?only=0&hentai=0&incomplete=1&lossless=1&hd=1&multiaudio=1&bonus=1&c1=1&c2=1&c5=1&reorder=1&q={0}", serie["Name"]);
             var doc = ScraperUtility.HTMLDocumentOfContentFromURL(requestUrl, cookieContainer, null, true);
@@ -121,7 +121,7 @@ namespace DerpScrapper.DownloadSite_Scrapers
 
         private List<PossibleDownloadHit> getTorrentsFromTable(HtmlNode tableNode, SerieInfo forSerie)
         {
-            List<string> badAlts = (forSerie.metadata.NameNonAlternatives != "") ? forSerie.metadata.NameNonAlternatives.Split('|').ToList() : new List<string>();
+            List<string> badAlts = (forSerie.Metadata.NameNonAlternatives != "") ? forSerie.Metadata.NameNonAlternatives.Split('|').ToList() : new List<string>();
 
             List<PossibleDownloadHit> retVal = new List<PossibleDownloadHit>();
             var cookies = this.cookieContainer.GetCookies(new Uri("http://bakabt.me"));
@@ -214,7 +214,7 @@ namespace DerpScrapper.DownloadSite_Scrapers
                     torrentUrl = "http://bakabt.me" + node.GetAttributeValue("href", "");
                 }
 
-                retVal.Add(new PossibleDownloadHit() { origSerieName = forSerie.serie.Name, name = searchHit.name, infoPageUrl = searchHit.url, url = torrentUrl });
+                retVal.Add(new PossibleDownloadHit() { origSerieName = forSerie.Serie.Name, name = searchHit.name, infoPageUrl = searchHit.url, url = torrentUrl });
             }
 
             return retVal;

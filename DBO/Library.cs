@@ -69,7 +69,7 @@ namespace DerpScrapper.DBO
         {
             List<Library> list = new List<Library>();
 
-            var command = BaseDB.connection.CreateCommand();
+            var command = BaseDB.Connection.CreateCommand();
             command.CommandText = string.Format("SELECT ROWID FROM {0}", @"Library");
             var reader = command.ExecuteReader();
 
@@ -90,7 +90,7 @@ namespace DerpScrapper.DBO
             if (this["Name"].ToString() == string.Empty)
                 throw new Exception("Empty name");
 
-            var command = BaseDB.connection.CreateCommand();
+            var command = BaseDB.Connection.CreateCommand();
             command.CommandText = string.Format("SELECT {1} FROM {0} WHERE {1} = {2}", "Library", "Name", "@Name");
             command.Parameters.AddWithValue("@Name", this["Name"]).DbType = this.columns["Name"].type;
 
@@ -109,7 +109,7 @@ namespace DerpScrapper.DBO
             if (this.rowId == -1)
                 return list;
 
-            var command = BaseDB.connection.CreateCommand();
+            var command = BaseDB.Connection.CreateCommand();
             command.CommandText = "SELECT ROWID FROM Serie WHERE LibraryId = " + this.Id;
             var reader = command.ExecuteReader();
 

@@ -46,6 +46,10 @@
     <Reference Include="HtmlAgilityPack">
       <HintPath>.\Resources\Libs\HtmlAgilityPack.dll</HintPath>
     </Reference>
+    <Reference Include="Ionic.Zip.Reduced, Version=1.9.1.8, Culture=neutral, PublicKeyToken=edbe51ad942a3f5c, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>Resources\Libs\Ionic.Zip.Reduced.dll</HintPath>
+    </Reference>
     <Reference Include="Newtonsoft.Json, Version=4.5.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>Resources\Libs\Newtonsoft.Json.dll</HintPath>
@@ -80,6 +84,8 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DBO\EpisodeImage.cs" />
+    <Compile Include="DBO\SerieImage.cs" />
     <Compile Include="Library\AddNewLibrary.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -188,6 +194,7 @@
     <Content Include="books.ico" />
     <Content Include="Resources\Images\books.ico" />
     <Content Include="Resources\Libs\HtmlAgilityPack.dll" />
+    <Content Include="Resources\Libs\Ionic.Zip.Reduced.dll" />
     <Content Include="Resources\Libs\Newtonsoft.Json.dll" />
     <Content Include="Resources\Libs\Ookii.Dialogs.dll" />
     <Content Include="Resources\Images\spinner.gif" />

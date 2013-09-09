@@ -40,8 +40,8 @@ namespace DerpScrapper.DownloadSite_Scrapers
 
         public List<PossibleDownloadHit> GetDownloadsForEntireSerie(SerieInfo forSerie)
         {
-            var serie = forSerie.serie;
-            var knownEpisodes = forSerie.episodes;
+            var serie = forSerie.Serie;
+            var knownEpisodes = forSerie.Episodes;
 
             Log.WriteLine("\n\n--------------------NEW RUN----------------------\n\n");
 

@@ -22,9 +22,9 @@ namespace DerpScrapper.DBO
             {
                 _columns = new Dictionary<string, DerpScrapper.BaseDB.SQLiteDBType>();
                 _columns.Add("SerieId", DerpScrapper.BaseDB.SQLiteDBType.Integer);
+                _columns.Add("ExternalSerieId", BaseDB.SQLiteDBType.Text);
                 _columns.Add("ResourceSiteId", DerpScrapper.BaseDB.SQLiteDBType.Integer);
                 _columns.Add("ResourceSiteRating", DerpScrapper.BaseDB.SQLiteDBType.Double);
-                _columns.Add("ResourceSiteUrl", DerpScrapper.BaseDB.SQLiteDBType.Text);
             }
             this.columns = _columns;
         }
@@ -33,7 +33,9 @@ namespace DerpScrapper.DBO
         {
             get
             {
-                return (int)this["SerieId"];
+                if(ContainsKey("SerieId"))
+                    return (int)this["SerieId"];
+                return 0;
             }
             set
             {
@@ -41,11 +43,27 @@ namespace DerpScrapper.DBO
             }
         }
 
+        public string ExternalSerieId
+        {
+            get
+            {
+                if (ContainsKey("ExternalSerieId"))
+                    return (string) this["ExternalSerieId"];
+                return "";
+            }
+            set
+            {
+                this["ExternalSerieId"] = value;
+            }
+        }
+
         public int ResourceSiteId
         {
             get
             {
-                return (int)this["ResourceSiteId"];
+                if (ContainsKey("ResourceSiteId"))
+                    return (int)this["ResourceSiteId"];
+                return 0;
             }
             set
             {
@@ -53,23 +71,13 @@ namespace DerpScrapper.DBO
             }
         }
 
-        public string ResourceSiteUrl
-        {
-            get
-            {
-                return (string)this["ResourceSiteUrl"];
-            }
-            set
-            {
-                this["ResourceSiteUrl"] = value;
-            }
-        }
-
         public double ResourceSiteRating
         {
             get
             {
-                return (double)this["ResourceSiteRating"];
+                if (ContainsKey("ResourceSiteRating"))
+                    return (double)this["ResourceSiteRating"];
+                return 0;
             }
             set
             {

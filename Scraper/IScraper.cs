@@ -22,32 +22,101 @@ namespace DerpScrapper
         public int languageId;
     }
 
-    class SerieInfo
+    public class SerieInfo
     {
         // empty (def) ctor
         public SerieInfo()
         {
-            serie = new Serie();
-            episodes = new List<Episode>();
-            genres = new List<SerieGenre>();
-            metadata = new SerieMetadata();
-            resource = new SerieResource();
+            Serie = new Serie();
+            Episodes = new List<Episode>();
+            Genres = new List<SerieGenre>();
+            Metadata = new SerieMetadata();
+            Resource = new SerieResource();
+            PosterImage = new SerieImage();
+            BannerImage = new SerieImage();
+            BackgroundImage = new SerieImage();
         }
 
         public SerieInfo(Serie serie)
         {
-            this.serie = serie;
-            this.episodes = serie.GetEpisodes();
-            this.genres = serie.GetGenres();
-            this.metadata = serie.GetMetadata();
-            this.resource = serie.GetResource();
+            this.Serie = serie;
+            this.Episodes = serie.GetEpisodes();
+            this.Genres = serie.GetGenres();
+            this.Metadata = serie.GetMetadata();
+            this.Resource = serie.GetResource();
         }
 
-        public Serie serie;
-        public List<Episode> episodes;
-        public List<SerieGenre> genres;
-        public SerieMetadata metadata;
-        public SerieResource resource;
+        public void Store()
+        {
+            int serieId = 0;
+            bool wasNew = false;
+            if (Serie.Exists)
+            {
+                Serie.Update();
+                serieId = Serie.Id;
+            }
+            else
+            {
+                serieId = Serie.Insert();
+                wasNew = true;
+            }
+
+            if (wasNew)
+            {
+                foreach (var episode in this.Episodes)
+                {
+                    episode.SerieId = serieId;
+                    episode.Insert();
+                }
+                foreach (var genre in this.Genres)
+                {
+                    genre.SerieId = serieId;
+                    genre.Insert();
+                }
+                Metadata.SerieId = serieId;
+                Metadata.Insert();
+
+                Resource.SerieId = serieId;
+                Resource.Insert();
+
+                PosterImage.SerieId = serieId;
+                PosterImage.Insert();
+
+                BannerImage.SerieId = serieId;
+                BannerImage.Insert();
+
+                BackgroundImage.SerieId = serieId;
+                BackgroundImage.Insert();
+            }
+            else
+            {
+                foreach (var episode in this.Episodes)
+                {
+                    episode.Update();
+                }
+                foreach (var genre in this.Genres)
+                {
+                    genre.Update();
+                }
+                Metadata.Update();
+                Resource.Update();
+                PosterImage.Update();
+                BannerImage.Update();
+                BackgroundImage.Update();
+            }
+        }
+
+
+
+        public Serie Serie;
+        public List<Episode> Episodes;
+        public List<SerieGenre> Genres;
+        public SerieMetadata Metadata;
+        public SerieResource Resource;
+
+        public SerieImage PosterImage;
+        public SerieImage BannerImage;
+        public SerieImage BackgroundImage;
     }
 
     public class PossibleDownloadHit

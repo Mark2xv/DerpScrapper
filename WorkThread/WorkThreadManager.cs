@@ -52,7 +52,7 @@ namespace DerpScrapper
             t.callback = callback;
             t.progress = progressCallback;
 
-            t.SetDboPointer = (SQLiteConnection) BaseDB.connection.Clone();
+            t.SetDboPointer = (SQLiteConnection) BaseDB.Connection.Clone();
 
             // Loop around if for some reason this application would be running for... a few million years?
             if (currentIndex == long.MaxValue)

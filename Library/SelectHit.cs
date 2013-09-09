@@ -11,9 +11,9 @@ namespace DerpScrapper.Library
     {
         private List<UncertainSerieHit> Options;
         private List<SelectNewHit> Selectables;
-        SelectNewHit currentSelected;
+        public SelectNewHit currentSelected;
 
-        public SelectHit(Serie serie, List<UncertainSerieHit> hits)
+        public SelectHit(SerieInfo serie, List<UncertainSerieHit> hits)
         {
             InitializeComponent();
             this.Icon = Resources.Resources.books; 
@@ -23,10 +23,22 @@ namespace DerpScrapper.Library
             foreach (var hit in hits)
             {
                 var select = new SelectNewHit(this, hit);
-                select.Width = this.SelectableItems.Width;
+                select.Width = 300;
                 select.Selected = false;
                 SelectableItems.Controls.Add(select);
                 Selectables.Add(select);
+            }
+
+            DialogResult = System.Windows.Forms.DialogResult.Cancel;
+
+
+            if (serie.Serie.FolderPath != "")
+            {
+                LabelPath.Text = serie.Serie.FolderPath;
+            }
+            else
+            {
+                Controls.Remove(LabelPath);
             }
         }
 
@@ -45,38 +57,25 @@ namespace DerpScrapper.Library
             }
         }
 
-        protected override void WndProc(ref Message m)
-        {
-            base.WndProc(ref m);
-            switch (m.Msg)
-            {
-                case 0x84: //WM_NCHITTEST
-                    var result = (HitTest) m.Result.ToInt32();
-                    if (result == HitTest.Left || result == HitTest.Right)
-                        m.Result = new IntPtr((int) HitTest.Caption);
-                    if (result == HitTest.TopLeft || result == HitTest.TopRight)
-                        m.Result = new IntPtr((int) HitTest.Top);
-                    if (result == HitTest.BottomLeft || result == HitTest.BottomRight)
-                        m.Result = new IntPtr((int) HitTest.Bottom);
+        
 
-                    break;
+        private void ButtonOK_Click(object sender, EventArgs e)
+        {
+            if (currentSelected != null)
+            {
+                this.DialogResult = System.Windows.Forms.DialogResult.OK;
+                this.Close();
+            }
+            else
+            {
+                MessageBox.Show("Please select the serie");
             }
         }
-        enum HitTest
+
+        private void ButtonCancel_Click(object sender, EventArgs e)
         {
-            Caption = 2,
-            Transparent = -1,
-            Nowhere = 0,
-            Client = 1,
-            Left = 10,
-            Right = 11,
-            Top = 12,
-            TopLeft = 13,
-            TopRight = 14,
-            Bottom = 15,
-            BottomLeft = 16,
-            BottomRight = 17,
-            Border = 18
+            this.DialogResult = System.Windows.Forms.DialogResult.Cancel;
+            this.Close();
         }
     }
 
@@ -84,10 +83,19 @@ namespace DerpScrapper.Library
     {
         public bool Selected = false;
         public UncertainSerieHit UncertainHit;
-        SelectHit BaseForm;
+        private SelectHit BaseForm;
 
         public SelectNewHit(SelectHit parent, UncertainSerieHit uncertainHit)
-            : base(new Serie() { Name = uncertainHit.Name}, uncertainHit.Image.ToString() )
+            : base(new SerieInfo() { 
+                Serie = new Serie() 
+                {
+                    Name = uncertainHit.Name 
+                },
+                Resource = new SerieResource()
+                {
+                    ExternalSerieId = uncertainHit.Id
+                }
+            }, uncertainHit.Image.ToString())
         {
             this.BaseForm = parent;
             this.UncertainHit = uncertainHit;
@@ -95,7 +103,6 @@ namespace DerpScrapper.Library
 
         public override void LibraryItem_Click(object sender, EventArgs e)
         {
-            Console.WriteLine("NEW HIT THINGY CLICK");
             this.BaseForm.SelectItem(this);
         }
     }

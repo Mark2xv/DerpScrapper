@@ -13,7 +13,7 @@ namespace DerpScrapper.DownloadSite_Scrapers
 
         public List<PossibleDownloadHit> GetDownloadsForEntireSerie(SerieInfo forSerie)
         {
-            var serie = forSerie.serie;
+            var serie = forSerie.Serie;
 
             var doc = ScraperUtility.HTMLDocumentOfContentFromURL(new Uri(baseUri, string.Format(format, serie["Name"])).AbsoluteUri);
             var table = doc.DocumentNode.Descendants("table").First().Descendants("tr");

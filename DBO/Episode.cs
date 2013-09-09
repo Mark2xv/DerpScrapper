@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace DerpScrapper.DBO
 {
@@ -32,8 +33,99 @@ namespace DerpScrapper.DBO
                 _columns.Add("Movie", DerpScrapper.BaseDB.SQLiteDBType.Integer);
                 _columns.Add("AirDate", DerpScrapper.BaseDB.SQLiteDBType.Integer);
                 _columns.Add("Synopsis", DerpScrapper.BaseDB.SQLiteDBType.Text);
+
+                _columns.Add("ExternalEpisodeId", DerpScrapper.BaseDB.SQLiteDBType.Text);
             }
             this.columns = _columns;
+        }
+
+        private bool _triedRetrievingImage = false;
+        private EpisodeImage _image;
+        public EpisodeImage Image
+        {
+            get
+            {
+                if (!_triedRetrievingImage && _image == null)
+                {
+                    _image = GetImage();
+                    _triedRetrievingImage = true;
+                }
+                return _image;
+            }
+            set
+            {
+                _image = value;
+            }
+        }
+
+        public EpisodeImage GetImage()
+        {
+            if (!this.Exists)
+                throw new Exception("Nonexistant serie");
+
+            var command = BaseDB.Connection.CreateCommand();
+            command.CommandText = string.Format("SELECT id FROM EpisodeImage WHERE EpisodeId = {0}", "@Id");
+            command.Parameters.AddWithValue("@Id", this.Id).DbType = System.Data.DbType.Int32;
+
+            var reader = command.ExecuteReader();
+            bool hasRows = reader.HasRows;
+
+            command.Dispose();
+            reader.Dispose();
+
+            if (hasRows)
+            {
+                return new EpisodeImage(Convert.ToInt32(reader["id"]));
+            }
+            return null;
+        }
+
+        public new int Store()
+        {
+            int id;
+            if(!this.Exists) 
+            {
+                id = base.Store();
+            }
+            else 
+            {
+                id = this.Id;
+            }
+
+            if(this.Image != null) 
+            {
+                this.Image.EpisodeId = id;
+                if (this.Image.Exists)
+                {
+                    this.Image.Update();
+                }
+                else
+                {
+                    this.Image.Store();
+                }
+            }
+            return id;
+        }
+
+        public new bool Update() 
+        {
+            if (this.Exists)
+            {
+                base.Update();
+                if (this.Image != null)
+                {
+                    this.Image.EpisodeId = this.Id;
+                    if (this.Image.Exists)
+                    {
+                        return this.Image.Update();
+                    }
+                    else
+                    {
+                        return this.Image.Store() > 0;
+                    }
+                }
+            }
+            return false;
         }
 
         public int SerieId
@@ -144,8 +236,16 @@ namespace DerpScrapper.DBO
             }
         }
 
-        public bool hasImage;
-        public int SeasonId;
-        public int EpisodeId;
+        public string ExternalEpisodeId
+        {
+            get
+            {
+                return (string) this["ExternalEpisodeId"];
+            }
+            set
+            {
+                this["ExternalEpisodeId"] = value;
+            }
+        }
     }
 }
