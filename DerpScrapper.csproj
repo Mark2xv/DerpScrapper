@@ -97,6 +97,12 @@
     <Compile Include="APIs\DailyTvTorrentsAPI\Show.cs" />
     <Compile Include="APIs\DailyTvTorrentsAPI\Torrent.cs" />
     <Compile Include="DBO\BaseDB.cs" />
+    <Compile Include="Library\EpisodeView.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Library\EpisodeView.Designer.cs">
+      <DependentUpon>EpisodeView.cs</DependentUpon>
+    </Compile>
     <Compile Include="Library\FixMismatch.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -114,6 +120,12 @@
     </Compile>
     <Compile Include="Library\SelectHit.Designer.cs">
       <DependentUpon>SelectHit.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Library\SeriesView.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Library\SeriesView.Designer.cs">
+      <DependentUpon>SeriesView.cs</DependentUpon>
     </Compile>
     <Compile Include="Log.cs" />
     <Compile Include="MainWindow.cs">
@@ -155,11 +167,17 @@
     <EmbeddedResource Include="Library\AddNewLibrary.resx">
       <DependentUpon>AddNewLibrary.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Library\EpisodeView.resx">
+      <DependentUpon>EpisodeView.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Library\LibraryTab.resx">
       <DependentUpon>LibraryTab.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Library\SelectHit.resx">
       <DependentUpon>SelectHit.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Library\SeriesView.resx">
+      <DependentUpon>SeriesView.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="MainWindow.resx">
       <DependentUpon>MainWindow.cs</DependentUpon>

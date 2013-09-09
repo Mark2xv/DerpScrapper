@@ -6,7 +6,7 @@ namespace DerpScrapper
 {
     class WorkThreadManager
     {
-        private int maxTasks = 4;
+        private int maxTasks = 16;
         private static WorkThreadManager _instance;
 
         private Queue<WorkThread> queue;

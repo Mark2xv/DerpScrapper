@@ -419,7 +419,7 @@ namespace DerpScrapper.Scrapers
             ep.Synopsis = overview;
 
             var image = new EpisodeImage();
-            image.RemoteURL = imageUrl;
+            image.RemoteURL = imageUrl != "" ? ImageBaseURL + "/" + imageUrl : "";
 
             ep.Image = image;
 

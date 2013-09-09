@@ -35,8 +35,8 @@ namespace DerpScrapper
 
             this.DialogResult = System.Windows.Forms.DialogResult.Cancel;
 
-            this.ImportPath = "D:\\Anime";
-            this.txtName.Text = "Anime";
+            this.ImportPath = "D:\\Series";
+            this.txtName.Text = "Series";
         }
 
         void AddNewLibrary_KeyUp(object sender, KeyEventArgs e)
